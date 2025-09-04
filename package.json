@@ -7,7 +7,7 @@
   },
   "scripts": {
     "client": "cd frontend && npm run dev",
-    "server": "cd backend && nodemon index.js",
+    "server": "cd backend && npm start",
     "dev": "concurrently \"npm run client\" \"npm run server\""
   }
 }
