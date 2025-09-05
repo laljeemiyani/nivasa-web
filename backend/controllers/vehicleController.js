@@ -1,0 +1,261 @@
+const Vehicle = require('../models/Vehicle');
+
+// Add vehicle
+const addVehicle = async (req, res) => {
+  try {
+    const {
+      vehicleType,
+      vehicleName,
+      vehicleNumber,
+      vehicleModel,
+      vehicleColor,
+      registrationDate
+    } = req.body;
+
+    // Check if vehicle number already exists for this user
+    const existingVehicle = await Vehicle.findOne({
+      userId: req.user._id,
+      vehicleNumber: vehicleNumber.toUpperCase()
+    });
+
+    if (existingVehicle) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle with this number already registered'
+      });
+    }
+
+    const vehicle = new Vehicle({
+      userId: req.user._id,
+      vehicleType,
+      vehicleName,
+      vehicleNumber: vehicleNumber.toUpperCase(),
+      vehicleModel,
+      vehicleColor,
+      registrationDate: registrationDate ? new Date(registrationDate) : null
+    });
+
+    await vehicle.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Vehicle added successfully',
+      data: { vehicle }
+    });
+  } catch (error) {
+    console.error('Add vehicle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add vehicle',
+      error: error.message
+    });
+  }
+};
+
+// Get user's vehicles
+const getUserVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ userId: req.user._id })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: { vehicles }
+    });
+  } catch (error) {
+    console.error('Get user vehicles error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch vehicles',
+      error: error.message
+    });
+  }
+};
+
+// Get single vehicle
+const getVehicle = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    const vehicle = await Vehicle.findOne({
+      _id: vehicleId,
+      userId: req.user._id
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { vehicle }
+    });
+  } catch (error) {
+    console.error('Get vehicle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch vehicle',
+      error: error.message
+    });
+  }
+};
+
+// Update vehicle
+const updateVehicle = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const {
+      vehicleType,
+      vehicleName,
+      vehicleNumber,
+      vehicleModel,
+      vehicleColor,
+      registrationDate
+    } = req.body;
+
+    // Check if vehicle number already exists for another vehicle of this user
+    if (vehicleNumber) {
+      const existingVehicle = await Vehicle.findOne({
+        userId: req.user._id,
+        vehicleNumber: vehicleNumber.toUpperCase(),
+        _id: { $ne: vehicleId }
+      });
+
+      if (existingVehicle) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle with this number already registered'
+        });
+      }
+    }
+
+    const updateData = {};
+    if (vehicleType) updateData.vehicleType = vehicleType;
+    if (vehicleName) updateData.vehicleName = vehicleName;
+    if (vehicleNumber) updateData.vehicleNumber = vehicleNumber.toUpperCase();
+    if (vehicleModel) updateData.vehicleModel = vehicleModel;
+    if (vehicleColor) updateData.vehicleColor = vehicleColor;
+    if (registrationDate) updateData.registrationDate = new Date(registrationDate);
+
+    const vehicle = await Vehicle.findOneAndUpdate(
+      { _id: vehicleId, userId: req.user._id },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vehicle updated successfully',
+      data: { vehicle }
+    });
+  } catch (error) {
+    console.error('Update vehicle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update vehicle',
+      error: error.message
+    });
+  }
+};
+
+// Delete vehicle
+const deleteVehicle = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    const vehicle = await Vehicle.findOneAndDelete({
+      _id: vehicleId,
+      userId: req.user._id
+    });
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Vehicle deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete vehicle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete vehicle',
+      error: error.message
+    });
+  }
+};
+
+// Get vehicle statistics (Admin only)
+const getVehicleStats = async (req, res) => {
+  try {
+    const [
+      totalVehicles,
+      twoWheelers,
+      fourWheelers,
+      vehiclesByWing
+    ] = await Promise.all([
+      Vehicle.countDocuments(),
+      Vehicle.countDocuments({ vehicleType: 'Two Wheeler' }),
+      Vehicle.countDocuments({ vehicleType: 'Four Wheeler' }),
+      Vehicle.aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user'
+          }
+        },
+        {
+          $unwind: '$user'
+        },
+        {
+          $group: {
+            _id: '$user.wing',
+            count: { $sum: 1 }
+          }
+        }
+      ])
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        totalVehicles,
+        twoWheelers,
+        fourWheelers,
+        vehiclesByWing
+      }
+    });
+  } catch (error) {
+    console.error('Get vehicle stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch vehicle statistics',
+      error: error.message
+    });
+  }
+};
+
+module.exports = {
+  addVehicle,
+  getUserVehicles,
+  getVehicle,
+  updateVehicle,
+  deleteVehicle,
+  getVehicleStats
+};
