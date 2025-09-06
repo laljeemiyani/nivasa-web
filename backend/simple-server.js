@@ -1,11 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const rateLimit = require('express-rate-limit');
-// const mongoSanitize = require('express-mongo-sanitize'); // Temporarily disabled due to Express v5 compatibility
-// const hpp = require('hpp'); // Temporarily disabled due to Express v5 compatibility
-const morgan = require('morgan');
 const path = require('path');
 
 // Import configurations and database
@@ -19,34 +13,13 @@ const noticeRoutes = require('./routes/notices');
 const complaintRoutes = require('./routes/complaints');
 const familyRoutes = require('./routes/family');
 const vehicleRoutes = require('./routes/vehicles');
-const notificationRoutes = require('./routes/notifications');
-
-// Import middleware
-const { handleUploadError } = require('./middlewares/upload');
 
 // Connect to database
 connectDB();
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
-app.use(compression());
-// app.use(mongoSanitize()); // Temporarily disabled due to Express v5 compatibility
-// app.use(hpp()); // Temporarily disabled due to Express v5 compatibility
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.RATE_LIMIT_WINDOW_MS, // from environment
-  max: config.RATE_LIMIT_MAX_REQUESTS, // from environment
-  message: {
-    success: false,
-    message: 'Too many requests from this IP, please try again later.'
-  }
-});
-app.use('/api/', limiter);
-
-// CORS configuration
+// Basic middleware
 app.use(cors({
   origin: config.FRONTEND_URL,
   credentials: true,
@@ -60,7 +33,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging middleware
 if (config.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
 }
 
 // Static files
@@ -73,7 +49,6 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/family', familyRoutes);
 app.use('/api/vehicles', vehicleRoutes);
-app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -95,10 +70,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use(handleUploadError);
-
-// 404 handler - catch all routes that don't match any API routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
