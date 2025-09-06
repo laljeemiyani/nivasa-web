@@ -1,12 +1,14 @@
+require('../models/FamilyMember');
 const User = require('../models/User');
-const FamilyMember = require('../models/FamilyMember');
 const Vehicle = require('../models/Vehicle');
 const Notice = require('../models/Notice');
 const Complaint = require('../models/Complaint');
+const { createNotificationInternal } = require('./notificationController');
 
 // Get dashboard statistics
 const getDashboardStats = async (req, res) => {
   try {
+    console.log('Fetching dashboard stats...');
     const [
       totalResidents,
       pendingResidents,
@@ -23,17 +25,31 @@ const getDashboardStats = async (req, res) => {
       Vehicle.countDocuments()
     ]);
 
+    console.log('Dashboard stats fetched:', {
+      totalResidents,
+      pendingResidents,
+      totalComplaints,
+      pendingComplaints,
+      totalNotices,
+      totalVehicles
+    });
+
     // Get recent activities
+    console.log('Fetching recent complaints...');
     const recentComplaints = await Complaint.find()
       .populate('userId', 'fullName email')
       .sort({ createdAt: -1 })
       .limit(5);
+    console.log('Recent complaints fetched:', recentComplaints.length);
 
+    console.log('Fetching recent residents...');
     const recentResidents = await User.find({ role: 'resident' })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('fullName email status createdAt');
+    console.log('Recent residents fetched:', recentResidents.length);
 
+    console.log('Sending dashboard response.');
     res.json({
       success: true,
       data: {
@@ -151,6 +167,18 @@ const updateResidentStatus = async (req, res) => {
       success: true,
       message: `Resident ${status} successfully`,
       data: { user }
+    });
+
+    // Notify resident about status update
+    await createNotificationInternal({
+      userId: user._id,
+      title: `Your Registration Status: ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      message: status === 'approved' ?
+        'Your resident registration has been approved. You can now log in.' :
+        `Your resident registration has been rejected. Reason: ${rejectionReason || 'No reason provided.'}`,
+      type: 'status_update',
+      relatedModel: 'User',
+      relatedId: user._id
     });
   } catch (error) {
     console.error('Update resident status error:', error);
@@ -300,11 +328,16 @@ const getVehicles = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const vehicleType = req.query.vehicleType;
     const search = req.query.search;
+    const status = req.query.status;
 
     const filter = {};
     
     if (vehicleType) {
       filter.vehicleType = vehicleType;
+    }
+    
+    if (status) {
+      filter.status = status;
     }
     
     if (search) {
@@ -322,7 +355,7 @@ const getVehicles = async (req, res) => {
 
     const total = await Vehicle.countDocuments(filter);
 
-    res.json({
+    console.log('Sending vehicles response:', {
       success: true,
       data: {
         vehicles,
@@ -334,11 +367,73 @@ const getVehicles = async (req, res) => {
         }
       }
     });
+    res.status(200).json({ success: true, data: { vehicles, pagination: { totalPages: Math.ceil(total / limit), currentPage: page, totalVehicles: total } } });
   } catch (error) {
     console.error('Get vehicles error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch vehicles',
+      error: error.message
+    });
+  }
+};
+
+// Update vehicle status (approve/reject)
+const updateVehicleStatus = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const { status } = req.body;
+
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle not found'
+      });
+    }
+
+    // Store previous status to check if it changed
+    const previousStatus = vehicle.status;
+    
+    vehicle.status = status;
+    await vehicle.save();
+    
+    // Create notification for the resident if status changed
+    if (previousStatus !== status) {
+      try {
+        const { createNotificationInternal } = require('../controllers/notificationController');
+        await createNotificationInternal({
+          userId: vehicle.userId,
+          title: `Vehicle ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+          message: `Your vehicle ${vehicle.vehicleName || vehicle.vehicleNumber} has been ${status === 'approved' ? 'approved' : 'rejected'} by the admin.`,
+          type: status === 'approved' ? 'success' : 'warning',
+          relatedModel: 'Vehicle',
+          relatedId: vehicle._id
+        });
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
+        // Continue execution even if notification creation fails
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Vehicle ${status === 'approved' ? 'approved' : 'rejected'} successfully`,
+      data: { vehicle }
+    });
+  } catch (error) {
+    console.error('Update vehicle status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update vehicle status',
       error: error.message
     });
   }
@@ -351,5 +446,6 @@ module.exports = {
   getComplaints,
   updateComplaintStatus,
   deleteComplaint,
-  getVehicles
+  getVehicles,
+  updateVehicleStatus
 };

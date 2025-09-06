@@ -36,6 +36,11 @@ const vehicleSchema = new mongoose.Schema({
   },
   registrationDate: {
     type: Date
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
   }
 }, {
   timestamps: true

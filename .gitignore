@@ -21,6 +21,7 @@ build/
 
 # IDE/Editor
 .vscode/
+.trae/
 .idea/
 .DS_Store
 

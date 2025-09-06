@@ -22,6 +22,7 @@ import ResidentDashboard from './pages/resident/Dashboard';
 import ResidentProfile from './pages/resident/Profile';
 import ResidentComplaints from './pages/resident/Complaints';
 import ResidentNotices from './pages/resident/Notices';
+import ResidentNotifications from './pages/resident/Notifications';
 import ResidentFamily from './pages/resident/Family';
 import ResidentVehicles from './pages/resident/Vehicles';
 import ComponentShowcase from './pages/ComponentShowcase';
@@ -89,6 +90,7 @@ function AppContent() {
           <Route path="profile" element={<ResidentProfile />} />
           <Route path="complaints" element={<ResidentComplaints />} />
           <Route path="notices" element={<ResidentNotices />} />
+          <Route path="notifications" element={<ResidentNotifications />} />
           <Route path="family" element={<ResidentFamily />} />
           <Route path="vehicles" element={<ResidentVehicles />} />
         </Route>

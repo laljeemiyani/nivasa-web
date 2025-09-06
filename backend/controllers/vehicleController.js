@@ -32,7 +32,8 @@ const addVehicle = async (req, res) => {
       vehicleNumber: vehicleNumber.toUpperCase(),
       vehicleModel,
       vehicleColor,
-      registrationDate: registrationDate ? new Date(registrationDate) : null
+      registrationDate: registrationDate ? new Date(registrationDate) : null,
+      status: 'pending' // Set default status to pending for approval
     });
 
     await vehicle.save();
@@ -139,6 +140,9 @@ const updateVehicle = async (req, res) => {
     if (vehicleModel) updateData.vehicleModel = vehicleModel;
     if (vehicleColor) updateData.vehicleColor = vehicleColor;
     if (registrationDate) updateData.registrationDate = new Date(registrationDate);
+    
+    // Reset status to pending when vehicle details are updated
+    updateData.status = 'pending';
 
     const vehicle = await Vehicle.findOneAndUpdate(
       { _id: vehicleId, userId: req.user._id },

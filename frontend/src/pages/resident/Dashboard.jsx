@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { noticeAPI, complaintAPI } from '../../services/api';
+import { residentAPI } from '../../services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
+import { Badge } from '../../components/ui/Badge';
 import { 
   MegaphoneIcon, 
   ExclamationTriangleIcon,
@@ -24,8 +24,8 @@ const ResidentDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [noticesResponse, complaintsResponse] = await Promise.all([
-        noticeAPI.getNotices({ limit: 5 }),
-        complaintAPI.getUserComplaints({ limit: 5 })
+        residentAPI.getNotices({ limit: 5 }),
+        residentAPI.getComplaints({ limit: 5 })
       ]);
 
       setNotices(noticesResponse.data.data.notices);
