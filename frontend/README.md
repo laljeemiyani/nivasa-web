@@ -1,11 +1,58 @@
-# React + Vite
+# Nivasa Society Management System - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+This is the frontend application for the Nivasa Society Management System, built with React and Vite.
 
-Currently, two official plugins are available:
+## Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Setup Instructions
+
+### 1. Install Dependencies
+```bash
+npm install
+# or
+yarn install
+```
+
+### 2. Configure Environment Variables
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit the .env file with your specific configuration
+```
+
+### Available Environment Variables
+- `VITE_APP_API_URL`: Backend API URL (default: http://localhost:5000)
+- `VITE_APP_PORT`: Development server port (default: 5173)
+- `VITE_APP_ENV`: Environment name (development/production)
+- `VITE_APP_TITLE`: Application title
+- `VITE_APP_DESCRIPTION`: Application description
+- `VITE_APP_MAX_FILE_SIZE`: Maximum file upload size
+- `VITE_APP_ENABLE_NOTIFICATIONS`: Enable/disable notifications feature
+- `VITE_APP_ENABLE_DARK_MODE`: Enable/disable dark mode feature
+
+### 3. Start Development Server
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+### 4. Build for Production
+```bash
+npm run build
+# or
+yarn build
+```
+
+## Available Scripts
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run lint`: Run ESLint
+- `npm run preview`: Preview production build locally
 
 ## Expanding the ESLint configuration
 

@@ -17,6 +17,10 @@ const vehicleRoutes = require('./routes/vehicles');
 // Connect to database
 connectDB();
 
+// Initialize admin user
+const initAdmin = require('./scripts/initAdmin');
+initAdmin();
+
 const app = express();
 
 // Basic middleware

@@ -25,7 +25,8 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    if (user.status !== 'approved') {
+    // Only check approval status for residents, not for admins
+    if (user.role === 'resident' && user.status !== 'approved') {
       return res.status(403).json({
         success: false,
         message: 'Account not approved yet'
