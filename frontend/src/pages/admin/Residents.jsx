@@ -5,6 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Modal, ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalCloseButton } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
+import { Dropdown, DropdownItem, DropdownSeparator } from '../../components/ui/Dropdown';
 
 const AdminResidents = () => {
   const [residents, setResidents] = useState([]);
@@ -12,7 +13,7 @@ const AdminResidents = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending');
   const [selectedResident, setSelectedResident] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [actionStatus, setActionStatus] = useState('');
@@ -142,20 +143,53 @@ const AdminResidents = () => {
                         {resident.status}
                       </Badge>
                     </td>
-                    <td className="border border-gray-300 px-4 py-2 space-x-2">
-                      {resident.status === 'pending' && (
-                        <>
-                          <Button onClick={() => openModal(resident, 'approved')} variant="success" size="sm">
-                            Approve
+                    <td className="border border-gray-300 px-4 py-2">
+                      <Dropdown
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Actions
+                            <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                           </Button>
-                          <Button onClick={() => openModal(resident, 'rejected')} variant="error" size="sm">
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      <Button onClick={() => openModal(resident, 'view')} variant="default" size="sm">
-                        View
-                      </Button>
+                        }
+                        align="right"
+                        width="sm"
+                      >
+                        {resident.status === 'pending' && (
+                          <>
+                            <DropdownItem 
+                              onClick={() => openModal(resident, 'approved')}
+                              className="text-green-600 hover:bg-green-50"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Approve
+                            </DropdownItem>
+                            <DropdownItem 
+                              onClick={() => openModal(resident, 'rejected')}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Reject
+                            </DropdownItem>
+                            <DropdownSeparator />
+                          </>
+                        )}
+                        <DropdownItem 
+                          onClick={() => openModal(resident, 'view')}
+                          className="text-blue-600 hover:bg-blue-50"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View
+                        </DropdownItem>
+                      </Dropdown>
                     </td>
                   </tr>
                 ))}

@@ -24,56 +24,65 @@ const Register = () => {
   const navigate = useNavigate();
 
   const validateField = (name, value) => {
-    const newErrors = { ...errors };
+    let errorMessage = null;
     
     switch (name) {
+      case 'fullName':
+        if (value && value.length > 100) {
+          errorMessage = 'Full name cannot exceed 100 characters';
+        }
+        break;
+      case 'email':
+        if (value && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
+          errorMessage = 'Please enter a valid email address';
+        }
+        break;
       case 'phoneNumber':
         if (value && !/^[0-9]{10}$/.test(value)) {
-          newErrors.phoneNumber = 'Phone number must be exactly 10 digits';
-        } else {
-          delete newErrors.phoneNumber;
+          errorMessage = 'Phone number must be exactly 10 digits';
         }
         break;
       case 'age':
         if (value && (parseInt(value) < 18 || parseInt(value) > 120)) {
-          newErrors.age = 'Age must be between 18 and 120 years (only adults can register)';
-        } else {
-          delete newErrors.age;
+          errorMessage = 'Age must be between 18 and 120 years (only adults can register)';
         }
         break;
       case 'wing':
         if (value && !/^[A-F]$/.test(value.toUpperCase())) {
-          newErrors.wing = 'Wing must be a single letter from A to F';
-        } else {
-          delete newErrors.wing;
+          errorMessage = 'Wing must be a single letter from A to F';
         }
         break;
       case 'flatNumber':
         if (value && !/^(([1-9]|1[0-4])0[1-4])$/.test(value)) {
-          newErrors.flatNumber = 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)';
-        } else {
-          delete newErrors.flatNumber;
+          errorMessage = 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)';
         }
         break;
       case 'password':
         if (value && value.length < 6) {
-          newErrors.password = 'Password must be at least 6 characters long';
-        } else {
-          delete newErrors.password;
+          errorMessage = 'Password must be at least 6 characters long';
         }
         break;
       case 'confirmPassword':
         if (value && value !== formData.password) {
-          newErrors.confirmPassword = 'Passwords do not match';
-        } else {
-          delete newErrors.confirmPassword;
+          errorMessage = 'Passwords do not match';
         }
         break;
       default:
         break;
     }
     
-    setErrors(newErrors);
+    // Update the errors state
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      if (errorMessage) {
+        newErrors[name] = errorMessage;
+      } else {
+        delete newErrors[name];
+      }
+      return newErrors;
+    });
+    
+    return errorMessage; // Return the error message for immediate use
   };
 
   const handleChange = (e) => {
@@ -98,17 +107,19 @@ const Register = () => {
     e.preventDefault();
     
     // Validate all fields before submission
+    const validationErrors = {};
     Object.keys(formData).forEach(key => {
-      validateField(key, formData[key]);
+      const error = validateField(key, formData[key]);
+      if (error) validationErrors[key] = error;
     });
     
     if (formData.password !== formData.confirmPassword) {
-      setErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
-      return;
+      validationErrors.confirmPassword = 'Passwords do not match';
     }
 
     // Check if there are any validation errors
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -118,10 +129,28 @@ const Register = () => {
       const { confirmPassword, ...userData } = formData;
       const result = await register(userData);
       if (result.success) {
-        navigate('/login');
+        // Clear form data on success
+        setFormData({
+          fullName: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          phoneNumber: '',
+          age: '',
+          gender: '',
+          wing: '',
+          flatNumber: '',
+          residentType: 'Owner',
+        });
+        // Navigate to login page with a delay to allow user to see success message
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       }
     } catch (error) {
       console.error('Registration error:', error);
+      // Display error message to user
+      alert(error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

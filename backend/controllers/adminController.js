@@ -163,12 +163,6 @@ const updateResidentStatus = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: `Resident ${status} successfully`,
-      data: { user }
-    });
-
     // Notify resident about status update
     await createNotificationInternal({
       userId: user._id,
@@ -179,6 +173,13 @@ const updateResidentStatus = async (req, res) => {
       type: 'status_update',
       relatedModel: 'User',
       relatedId: user._id
+    });
+    
+    // Send response AFTER all operations are complete
+    res.json({
+      success: true,
+      message: `Resident ${status} successfully`,
+      data: { user }
     });
   } catch (error) {
     console.error('Update resident status error:', error);

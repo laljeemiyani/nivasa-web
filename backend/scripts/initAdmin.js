@@ -1,13 +1,8 @@
-const mongoose = require('mongoose');
 const User = require('../models/User');
 const config = require('../config/config');
 
 const initAdmin = async () => {
   try {
-    // Connect to database
-    await mongoose.connect(config.MONGODB_URI);
-    console.log('Connected to MongoDB');
-
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: config.ADMIN_EMAIL });
     
@@ -34,11 +29,7 @@ const initAdmin = async () => {
     
   } catch (error) {
     console.error('Error initializing admin:', error);
-  } finally {
-    await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
   }
 };
 
-// Run the script
-initAdmin();
+module.exports = initAdmin;
