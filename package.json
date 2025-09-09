@@ -2,15 +2,18 @@
   "name": "nivasa-web",
   "version": "1.0.0",
   "license": "ISC",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "client": "npm run dev --workspace=frontend",
+    "server": "npm run dev-full --workspace=backend",
+    "build": "npm run build --workspaces"
+  },
   "devDependencies": {
     "concurrently": "^9.2.1"
-  },
-  "scripts": {
-    "client": "cd frontend && npm run dev",
-    "server": "cd backend && npm run start-full",
-    "dev": "concurrently \"npm run client\" \"npm run server\""
-  },
-  "dependencies": {
-    "date-fns": "^4.1.0"
   }
 }
