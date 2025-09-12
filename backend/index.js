@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -19,6 +21,7 @@ const noticeRoutes = require('./routes/notices');
 const complaintRoutes = require('./routes/complaints');
 const familyRoutes = require('./routes/family');
 const vehicleRoutes = require('./routes/vehicles');
+const notificationRoutes = require('./routes/notifications');
 
 // Import middleware
 const { handleUploadError } = require('./middlewares/upload');
@@ -72,6 +75,7 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/family', familyRoutes);
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

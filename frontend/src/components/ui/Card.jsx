@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { cn } from '../../utils/cn';
 
-const Card = forwardRef(({ 
+export const Card = forwardRef(({ 
   className, 
   variant = 'default',
   hover = false,
@@ -34,7 +34,7 @@ const Card = forwardRef(({
 });
 Card.displayName = 'Card';
 
-const CardHeader = forwardRef(({ className, ...props }, ref) => (
+export const CardHeader = forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn('flex flex-col space-y-2 p-6 pb-3', className)}
@@ -43,7 +43,7 @@ const CardHeader = forwardRef(({ className, ...props }, ref) => (
 ));
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = forwardRef(({ className, ...props }, ref) => (
+export const CardTitle = forwardRef(({ className, ...props }, ref) => (
   <h3
     ref={ref}
     className={cn('text-xl font-semibold leading-none tracking-tight', className)}
@@ -52,7 +52,7 @@ const CardTitle = forwardRef(({ className, ...props }, ref) => (
 ));
 CardTitle.displayName = 'CardTitle';
 
-const CardDescription = forwardRef(({ className, ...props }, ref) => (
+export const CardDescription = forwardRef(({ className, ...props }, ref) => (
   <p
     ref={ref}
     className={cn('text-sm text-text-secondary/80', className)}
@@ -61,12 +61,12 @@ const CardDescription = forwardRef(({ className, ...props }, ref) => (
 ));
 CardDescription.displayName = 'CardDescription';
 
-const CardContent = forwardRef(({ className, ...props }, ref) => (
+export const CardContent = forwardRef(({ className, ...props }, ref) => (
   <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
 ));
 CardContent.displayName = 'CardContent';
 
-const CardFooter = forwardRef(({ className, ...props }, ref) => (
+export const CardFooter = forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn('flex items-center p-6 pt-0', className)}
@@ -74,5 +74,3 @@ const CardFooter = forwardRef(({ className, ...props }, ref) => (
   />
 ));
 CardFooter.displayName = 'CardFooter';
-
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };

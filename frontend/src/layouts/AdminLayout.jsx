@@ -10,8 +10,10 @@ import {
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  BellIcon
 } from '../components/ui/Icons';
+import NotificationBell from '../components/NotificationBell';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -121,6 +123,8 @@ const AdminLayout = () => {
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1" />
+            {/* Notification Bell */}
+            <NotificationBell />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               {/* User menu */}
               <div className="flex items-center gap-x-2">

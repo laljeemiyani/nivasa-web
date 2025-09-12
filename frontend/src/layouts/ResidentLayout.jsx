@@ -10,8 +10,10 @@ import {
   TruckIcon,
   Bars3Icon,
   XMarkIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  BellIcon
 } from '../components/ui/Icons';
+import NotificationBell from '../components/NotificationBell';
 
 const ResidentLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -24,6 +26,7 @@ const ResidentLayout = () => {
     { name: 'Profile', href: '/resident/profile', icon: UserCircleIcon },
     { name: 'Complaints', href: '/resident/complaints', icon: ExclamationTriangleIcon },
     { name: 'Notices', href: '/resident/notices', icon: MegaphoneIcon },
+    { name: 'Notifications', href: '/resident/notifications', icon: BellIcon },
     { name: 'Family', href: '/resident/family', icon: UsersIcon },
     { name: 'Vehicles', href: '/resident/vehicles', icon: TruckIcon },
   ];
@@ -123,6 +126,9 @@ const ResidentLayout = () => {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1" />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
               {/* User menu */}
               <div className="flex items-center gap-x-2">
                 <UserCircleIcon className="h-8 w-8 text-gray-400" />

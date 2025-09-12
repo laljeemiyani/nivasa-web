@@ -120,10 +120,13 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register(userData);
       const { user } = response.data.data;
 
+      // Even though registration is successful, we don't log the user in
+      // because they need admin approval first
       dispatch({ type: 'AUTH_FAILURE', payload: null });
-      toast.success('Registration successful! Please wait for admin approval.');
+      toast.success('Registration successful! Please wait for admin approval before logging in.');
       return { success: true, user };
     } catch (error) {
+      console.error('Registration error details:', error);
       const errorMessage = error.response?.data?.message || 'Registration failed';
       dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
       toast.error(errorMessage);

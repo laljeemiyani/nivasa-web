@@ -7,8 +7,10 @@ const {
   getComplaints,
   updateComplaintStatus,
   deleteComplaint,
-  getVehicles
+  getVehicles,
+  updateVehicleStatus
 } = require('../controllers/adminController');
+const adminNotificationController = require('../controllers/adminNotificationController');
 const { authenticateToken, requireAdmin } = require('../middlewares/auth');
 const { validatePagination, validateObjectId } = require('../middlewares/validation');
 
@@ -30,5 +32,10 @@ router.delete('/complaints/:complaintId', validateObjectId('complaintId'), delet
 
 // Vehicle management
 router.get('/vehicles', validatePagination, getVehicles);
+router.put('/vehicles/:vehicleId/status', validateObjectId('vehicleId'), updateVehicleStatus);
+
+// Notification management
+router.post('/notifications/all', adminNotificationController.createNotificationForAllResidents);
+router.post('/notifications/resident', adminNotificationController.createNotificationForResident);
 
 module.exports = router;

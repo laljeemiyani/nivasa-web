@@ -10,6 +10,8 @@ const generateToken = (userId) => {
 };
 
 // Register new user
+const { createNotificationInternal } = require('./notificationController');
+
 const register = async (req, res) => {
   try {
     const {
@@ -49,6 +51,19 @@ const register = async (req, res) => {
     });
 
     await user.save();
+
+    // Notify admins about new resident registration
+    const admins = await User.find({ role: 'admin' });
+    for (const admin of admins) {
+      await createNotificationInternal({
+        userId: admin._id,
+        title: 'New Resident Registration',
+        message: `A new resident, ${fullName} (${email}), has registered and is awaiting approval.`, 
+        type: 'new_registration',
+        relatedModel: 'User',
+        relatedId: user._id
+      });
+    }
 
     res.status(201).json({
       success: true,

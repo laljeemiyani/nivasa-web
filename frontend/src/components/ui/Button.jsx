@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { cn } from '../../utils/cn';
 
-const Button = forwardRef(({ 
+export const Button = forwardRef(({ 
   className, 
   variant = 'primary', 
   size = 'md', 
