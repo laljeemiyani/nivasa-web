@@ -5,26 +5,27 @@ const {
     getUserVehicles,
     getVehicle,
     updateVehicle,
-    deleteVehicle,
-    getVehicleStats,
-    getAllVehicles
+    deleteVehicle
 } = require('../controllers/vehicleController');
-const {authenticateToken, requireAdmin} = require('../middlewares/auth');
+const {
+    getVehicles,
+    updateVehicleStatus
+} = require('../controllers/adminController'); // Assuming these functions are in adminController
+const {authenticateToken, requireAdmin, requireResident} = require('../middlewares/auth');
 const {validateVehicle, validatePagination, validateObjectId} = require('../middlewares/validation');
 
 // All vehicle routes require authentication
 router.use(authenticateToken);
 
-// User routes
-router.get('/', validatePagination, getAllVehicles);
-router.post('/', validateVehicle, addVehicle);
-router.get('/my-vehicles', getUserVehicles);
-router.get('/:vehicleId', validateObjectId('vehicleId'), getVehicle);
-router.put('/:vehicleId', validateObjectId('vehicleId'), updateVehicle);
-router.delete('/:vehicleId', validateObjectId('vehicleId'), deleteVehicle);
+// Resident routes
+router.post('/', requireResident, validateVehicle, addVehicle);
+router.get('/my', requireResident, getUserVehicles);
+router.get('/:vehicleId', requireResident, validateObjectId('vehicleId'), getVehicle);
+router.put('/:vehicleId', requireResident, validateObjectId('vehicleId'), updateVehicle);
+router.delete('/:vehicleId', requireResident, validateObjectId('vehicleId'), deleteVehicle);
 
 // Admin routes
-router.use('/admin', requireAdmin);
-router.get('/admin/stats', getVehicleStats);
+router.get('/', requireAdmin, validatePagination, getVehicles); // This route will be for admin to list ALL vehicles
+router.put('/:vehicleId/status', requireAdmin, validateObjectId('vehicleId'), updateVehicleStatus);
 
 module.exports = router;

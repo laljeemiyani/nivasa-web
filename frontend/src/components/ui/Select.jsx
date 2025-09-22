@@ -62,7 +62,7 @@ export const SelectContent = forwardRef(({ className, children, onSelect, onClos
     <div
       ref={ref}
       className={cn(
-        'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80',
+        'absolute z-[60] min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80',
         'w-full mt-1',
         className
       )}

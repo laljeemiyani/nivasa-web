@@ -17,7 +17,7 @@ export const DialogContent = forwardRef(({ className, children, ...props }, ref)
   <div
     ref={ref}
     className={cn(
-      'dialog-content relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl',
+      'dialog-content relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl z-[70]',
       'animate-in fade-in-0 zoom-in-95 duration-300',
       className
     )}
