@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
+import { Badge } from '../../components/ui/Badge';
 import { 
   UsersIcon, 
   ExclamationTriangleIcon, 

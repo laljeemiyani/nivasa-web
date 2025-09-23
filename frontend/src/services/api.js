@@ -1,115 +1,65 @@
 import axios from 'axios';
 
-// Create axios instance
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 10000,
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Add auth token to requests if available
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-// Response interceptor to handle errors
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Auth API
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  getProfile: () => api.get('/auth/profile'),
-  updateProfile: (userData) => api.put('/auth/profile', userData),
-  changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
-  verifyToken: () => api.get('/auth/verify'),
+  login: (credentials) => apiClient.post('/auth/login', credentials),
+  register: (userData) => apiClient.post('/auth/register', userData),
+  logout: () => apiClient.post('/auth/logout'),
+  getProfile: () => apiClient.get('/auth/profile'),
+  forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
+  resetPassword: (token, password) => apiClient.post('/auth/reset-password', { token, password }),
 };
 
-// Admin API
 export const adminAPI = {
-  getDashboardStats: () => api.get('/admin/dashboard/stats'),
-  getResidents: (params) => api.get('/admin/residents', { params }),
-  updateResidentStatus: (userId, statusData) => api.put(`/admin/residents/${userId}/status`, statusData),
-  getComplaints: (params) => api.get('/admin/complaints', { params }),
-  updateComplaintStatus: (complaintId, statusData) => api.put(`/admin/complaints/${complaintId}/status`, statusData),
-  deleteComplaint: (complaintId) => api.delete(`/admin/complaints/${complaintId}`),
-  getVehicles: (params) => api.get('/admin/vehicles', { params }),
+  getDashboardStats: () => apiClient.get('/admin/dashboard-stats'),
+  getResidents: (params) => apiClient.get('/admin/residents', { params }),
+  updateResidentStatus: (userId, data) => apiClient.put(`/admin/residents/${userId}/status`, data),
+  getComplaints: (params) => apiClient.get('/admin/complaints', { params }),
+  updateComplaintStatus: (complaintId, data) => apiClient.put(`/admin/complaints/${complaintId}/status`, data),
+  deleteComplaint: (complaintId) => apiClient.delete(`/admin/complaints/${complaintId}`),
+  getNotices: (params) => apiClient.get('/notices/admin', { params }),
+  createNotice: (data) => apiClient.post('/notices/admin', data),
+  updateNotice: (noticeId, data) => apiClient.put(`/notices/admin/${noticeId}`, data),
+  deleteNotice: (noticeId) => apiClient.delete(`/notices/admin/${noticeId}`),
+  getVehicles: (params) => apiClient.get('/admin/vehicles', { params }),
+  updateVehicleStatus: (vehicleId, data) => apiClient.put(`/admin/vehicles/${vehicleId}/status`, data)
 };
 
-// Notice API
-export const noticeAPI = {
-  getNotices: (params) => api.get('/notices', { params }),
-  getNotice: (noticeId) => api.get(`/notices/${noticeId}`),
-  createNotice: (noticeData) => api.post('/notices/admin', noticeData),
-  updateNotice: (noticeId, noticeData) => api.put(`/notices/admin/${noticeId}`, noticeData),
-  deleteNotice: (noticeId) => api.delete(`/notices/admin/${noticeId}`),
-  getNoticeStats: () => api.get('/notices/admin/stats'),
+export const residentAPI = {
+  getProfile: () => apiClient.get('/auth/profile'),
+  updateProfile: (data) => apiClient.put('/auth/profile', data),
+  updateProfilePhoto: (formData) => apiClient.post('/auth/update-profile-photo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+  changePassword: (data) => apiClient.post('/auth/change-password', data),
+  getNotices: (params) => apiClient.get('/notices', { params }),
+  getComplaints: (params) => apiClient.get('/complaints', { params }),
+  createComplaint: (data) => apiClient.post('/complaints', data),
+  updateComplaint: (complaintId, data) => apiClient.put(`/complaints/${complaintId}`, data),
+  deleteComplaint: (complaintId) => apiClient.delete(`/complaints/${complaintId}`),
+  getFamilyMembers: () => apiClient.get('/family'),
+  addFamilyMember: (data) => apiClient.post('/family', data),
+  updateFamilyMember: (memberId, data) => apiClient.put(`/family/${memberId}`, data),
+  deleteFamilyMember: (memberId) => apiClient.delete(`/family/${memberId}`),
+  getVehicles: () => apiClient.get('/vehicles'),
+  addVehicle: (data) => apiClient.post('/vehicles', data),
+  updateVehicle: (vehicleId, data) => apiClient.put(`/vehicles/${vehicleId}`, data),
+  deleteVehicle: (vehicleId) => apiClient.delete(`/vehicles/${vehicleId}`)
 };
-
-// Complaint API
-export const complaintAPI = {
-  createComplaint: (complaintData) => api.post('/complaints', complaintData),
-  getUserComplaints: (params) => api.get('/complaints/my-complaints', { params }),
-  getComplaint: (complaintId) => api.get(`/complaints/${complaintId}`),
-  updateComplaint: (complaintId, complaintData) => api.put(`/complaints/${complaintId}`, complaintData),
-  deleteComplaint: (complaintId) => api.delete(`/complaints/${complaintId}`),
-  getComplaintStats: () => api.get('/complaints/admin/stats'),
-};
-
-// Family API
-export const familyAPI = {
-  addFamilyMember: (memberData) => api.post('/family', memberData),
-  getFamilyMembers: () => api.get('/family'),
-  getFamilyMember: (memberId) => api.get(`/family/${memberId}`),
-  updateFamilyMember: (memberId, memberData) => api.put(`/family/${memberId}`, memberData),
-  deleteFamilyMember: (memberId) => api.delete(`/family/${memberId}`),
-};
-
-// Vehicle API
-export const vehicleAPI = {
-  addVehicle: (vehicleData) => api.post('/vehicles', vehicleData),
-  getUserVehicles: () => api.get('/vehicles/my-vehicles'),
-  getVehicle: (vehicleId) => api.get(`/vehicles/${vehicleId}`),
-  updateVehicle: (vehicleId, vehicleData) => api.put(`/vehicles/${vehicleId}`, vehicleData),
-  deleteVehicle: (vehicleId) => api.delete(`/vehicles/${vehicleId}`),
-  getVehicleStats: () => api.get('/vehicles/admin/stats'),
-};
-
-// File upload API
-export const uploadAPI = {
-  uploadFile: (formData, endpoint) => {
-    const token = localStorage.getItem('token');
-    return axios.post(`${import.meta.env.VITE_API_URL || '/api'}/${endpoint}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-    });
-  },
-};
-
-export default api;

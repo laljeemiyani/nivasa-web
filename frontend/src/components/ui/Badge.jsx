@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { cn } from '../../utils/cn';
 
-const Badge = forwardRef(({ 
+export const Badge = forwardRef(({ 
   className, 
   variant = 'default',
   size = 'md',

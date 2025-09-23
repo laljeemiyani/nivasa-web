@@ -2,14 +2,17 @@ import { useState } from 'react';
 import Button from '../components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/Card';
 import Input from '../components/ui/Input';
-import Badge from '../components/ui/Badge';
+import { Badge } from '../components/ui/Badge';
 import Avatar from '../components/ui/Avatar';
 import Alert from '../components/ui/Alert';
 import { Dropdown, DropdownItem, DropdownSeparator } from '../components/ui/Dropdown';
 import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalBody, ModalFooter, ModalCloseButton } from '../components/ui/Modal';
+import FileUpload from '../components/ui/FileUpload';
 
 const ComponentShowcase = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [singleFile, setSingleFile] = useState(null);
+  const [multipleFiles, setMultipleFiles] = useState([]);
 
   return (
     <div className="container mx-auto p-6">
@@ -293,6 +296,60 @@ const ComponentShowcase = () => {
                   <DropdownItem>Option 1</DropdownItem>
                   <DropdownItem>Option 2</DropdownItem>
                 </Dropdown>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+      
+      {/* File Upload Section */}
+      <section className="mb-12">
+        <h2 className="mb-4 text-2xl font-semibold">File Upload</h2>
+        <Card>
+          <CardContent className="grid gap-6">
+            <div>
+              <h3 className="mb-3 text-lg font-medium">Single File Upload</h3>
+              <FileUpload
+                label="Upload Profile Photo"
+                accept="image/*"
+                onChange={setSingleFile}
+                value={singleFile ? [singleFile] : []}
+                onRemove={() => setSingleFile(null)}
+                multiple={false}
+                variant="default"
+              />
+            </div>
+            
+            <div>
+              <h3 className="mb-3 text-lg font-medium">Multiple File Upload</h3>
+              <FileUpload
+                label="Upload Documents"
+                accept=".pdf,.doc,.docx,image/*"
+                onChange={setMultipleFiles}
+                value={multipleFiles}
+                multiple={true}
+                variant="filled"
+              />
+            </div>
+            
+            <div>
+              <h3 className="mb-3 text-lg font-medium">Upload Variants</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FileUpload
+                  label="Default Style"
+                  variant="default"
+                  showPreview={false}
+                />
+                <FileUpload
+                  label="Filled Style"
+                  variant="filled"
+                  showPreview={false}
+                />
+                <FileUpload
+                  label="Outlined Style"
+                  variant="outlined"
+                  showPreview={false}
+                />
               </div>
             </div>
           </CardContent>
