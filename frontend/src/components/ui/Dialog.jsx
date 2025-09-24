@@ -1,16 +1,25 @@
-import React, { forwardRef } from 'react';
-import { cn } from '../../utils/cn';
+import React, {forwardRef} from 'react';
+import {cn} from '../../utils/cn';
 
 export const Dialog = ({ children, open, onOpenChange, ...props }) => {
-  if (!open) return null;
-  
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="dialog-container" {...props}>
-        {children}
-      </div>
-    </div>
-  );
+    if (!open) return null;
+
+    const handleBackdropClick = (e) => {
+        if (e.target === e.currentTarget) {
+            onOpenChange?.(false);
+        }
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={handleBackdropClick}
+        >
+            <div className="dialog-container" {...props}>
+                {children}
+            </div>
+        </div>
+    );
 };
 
 export const DialogContent = forwardRef(({ className, children, ...props }, ref) => (

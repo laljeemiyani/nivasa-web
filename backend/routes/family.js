@@ -16,7 +16,7 @@ router.use(authenticateToken);
 router.post('/', validateFamilyMember, addFamilyMember);
 router.get('/', getFamilyMembers);
 router.get('/:memberId', validateObjectId('memberId'), getFamilyMember);
-router.put('/:memberId', validateObjectId('memberId'), updateFamilyMember);
+router.put('/:memberId', validateObjectId('memberId'), validateFamilyMember, updateFamilyMember);
 router.delete('/:memberId', validateObjectId('memberId'), deleteFamilyMember);
 
 module.exports = router;

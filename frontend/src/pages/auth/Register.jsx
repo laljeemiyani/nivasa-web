@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import {useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import {useAuth} from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -92,6 +92,11 @@ const Register = () => {
     // Auto-format wing to uppercase
     if (name === 'wing') {
       processedValue = value.toUpperCase();
+    }
+
+    // Only allow numeric input for phone number
+    if (name === 'phoneNumber') {
+      processedValue = value.replace(/[^0-9]/g, '').substring(0, 10);
     }
     
     setFormData({

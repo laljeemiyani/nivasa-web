@@ -313,10 +313,10 @@ const ResidentComplaints = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center p-4 border-b">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">My Complaints</h1>
-                    <p className="text-gray-600">Submit and track your complaints</p>
+                    <h1 className="text-xl font-bold">My Complaints</h1>
+                    <p className="text-sm text-slate-500">Submit and track your complaints</p>
                 </div>
                 <Button onClick={openCreateModal} className={'!w-[200px]'}
                         spanClasses={'flex justify-center items-center'}>
@@ -329,7 +329,6 @@ const ResidentComplaints = () => {
                 <CardHeader>
                     <CardTitle>Complaints</CardTitle>
                     <CardDescription>View and manage your complaints</CardDescription>
-
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="relative">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
@@ -337,13 +336,13 @@ const ResidentComplaints = () => {
                                 placeholder="Search complaints..."
                                 value={searchQuery}
                                 onChange={handleSearch}
-                                className="pl-8"
+                                className="pl-8 h-10 w-full"
                             />
                         </div>
 
                         <Select value={statusFilter} onValueChange={handleStatusChange}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Filter by status"/>
+                            <SelectTrigger className="h-10 w-full">
+                                <SelectValue placeholder="Filter by status">{statusFilter}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">All Statuses</SelectItem>
@@ -355,8 +354,8 @@ const ResidentComplaints = () => {
                         </Select>
 
                         <Select value={categoryFilter} onValueChange={handleCategoryChange}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Filter by category"/>
+                            <SelectTrigger className="h-10 w-full">
+                                <SelectValue placeholder="Filter by category">{categoryFilter}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="">All Categories</SelectItem>
@@ -456,7 +455,7 @@ const ResidentComplaints = () => {
 
             {/* Complaint Modal (Create/Edit/View) */}
             <Dialog open={isModalOpen} onOpenChange={closeModal}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="w-[95vw] sm:w-full sm:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             {modalMode === 'create' ? 'Submit New Complaint' :

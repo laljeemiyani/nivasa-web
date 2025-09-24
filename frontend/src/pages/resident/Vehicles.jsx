@@ -236,7 +236,8 @@ const ResidentVehicles = () => {
                         New vehicles require admin approval before they can be used
                     </p>
                 </div>
-                <Button className={'flex justify-center items-center  w-[170px]'} onClick={openCreateModal}>
+                <Button onClick={openCreateModal} className={'!w-[170px]'}
+                        spanClasses={'flex justify-center items-center'}>
                     <Plus className="h-4 w-4 mr-2"/>
                     Add Vehicle
                 </Button>
@@ -443,7 +444,6 @@ const ResidentVehicles = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation Dialog */}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={closeDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
