@@ -236,7 +236,7 @@ const ResidentVehicles = () => {
                         New vehicles require admin approval before they can be used
                     </p>
                 </div>
-                <Button onClick={openCreateModal}>
+                <Button className={'flex justify-center items-center  w-[170px]'} onClick={openCreateModal}>
                     <Plus className="h-4 w-4 mr-2"/>
                     Add Vehicle
                 </Button>

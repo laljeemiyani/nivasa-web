@@ -1,5 +1,5 @@
-import { forwardRef } from 'react';
-import { cn } from '../../utils/cn';
+import {forwardRef} from 'react';
+import {cn} from '../../utils/cn';
 
 export const Button = forwardRef(({ 
   className, 
@@ -11,6 +11,7 @@ export const Button = forwardRef(({
   icon,
   iconPosition = 'left',
   glow = false,
+                                    spanClasses = '',
   ...props 
 }, ref) => {
   const baseClasses = 'btn';
@@ -74,7 +75,7 @@ export const Button = forwardRef(({
         <span className="mr-2">{icon}</span>
       )}
       <span className={cn(
-        'transition-transform duration-300',
+          'transition-transform duration-300', spanClasses,
         variant === 'gradient' && 'mix-blend-plus-lighter'
       )}>
         {children}
