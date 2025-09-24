@@ -77,8 +77,8 @@ const validateFamilyMember = [
         .withMessage('Relation must be between 2 and 50 characters'),
     body('phone')
         .optional()
-        .isMobilePhone()
-        .withMessage('Please provide a valid phone number'),
+        .matches(/^[0-9]{10}$/)
+        .withMessage('Phone number must be exactly 10 digits'),
     body('email')
         .optional()
         .isEmail()

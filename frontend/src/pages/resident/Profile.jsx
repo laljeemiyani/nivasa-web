@@ -20,18 +20,11 @@ const ResidentProfile = () => {
     const [profile, setProfile] = useState(null);
     const [profilePhoto, setProfilePhoto] = useState(null);
     const [formData, setFormData] = useState({
-        fullName: '',
-        phoneNumber: '',
-        age: '',
-        gender: '',
-        wing: '',
-        flatNumber: '',
-        residentType: ''
+        fullName: '', phoneNumber: '', age: '', gender: '', wing: '', flatNumber: '', residentType: ''
     });
+    const [errors, setErrors] = useState({});
     const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        currentPassword: '', newPassword: '', confirmPassword: ''
     });
 
     useEffect(() => {
@@ -51,8 +44,7 @@ const ResidentProfile = () => {
 
             if (response.data.success) {
                 setProfilePhoto({
-                    preview: URL.createObjectURL(file),
-                    name: file.name
+                    preview: URL.createObjectURL(file), name: file.name
                 });
                 toast.success('Profile photo updated successfully');
             }
@@ -93,46 +85,104 @@ const ResidentProfile = () => {
         } catch (error) {
             console.error('Error fetching profile:', error);
             toast({
-                title: 'Error',
-                description: 'Failed to load profile information',
-                variant: 'destructive'
+                title: 'Error', description: 'Failed to load profile information', variant: 'destructive'
             });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (e) => {
-        const {name, value} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
     const handleSelectChange = (name, value) => {
         setFormData(prev => ({
-            ...prev,
-            [name]: value
+            ...prev, [name]: value
         }));
+
+        // Real-time validation
+        validateField(name, value);
+    };
+
+    const validateField = (name, value) => {
+        let errorMessage = null;
+
+        switch (name) {
+            case 'phoneNumber':
+                if (value && !/^[0-9]{10}$/.test(value)) {
+                    errorMessage = 'Phone number must be exactly 10 digits';
+                }
+                break;
+            case 'age':
+                if (value && (parseInt(value) < 18 || parseInt(value) > 120)) {
+                    errorMessage = 'Age must be between 18 and 120 years';
+                }
+                break;
+            case 'flatNumber':
+                if (value && !/^(([1-9]|1[0-4])0[1-4])$/.test(value)) {
+                    errorMessage = 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)';
+                }
+                break;
+            default:
+                break;
+        }
+
+        // Update the errors state
+        setErrors(prev => {
+            const newErrors = {...prev};
+            if (errorMessage) {
+                newErrors[name] = errorMessage;
+            } else {
+                delete newErrors[name];
+            }
+            return newErrors;
+        });
+
+        return errorMessage; // Return the error message for immediate use
+    };
+
+    const handleInputChange = (e) => {
+        const {name, value} = e.target;
+
+        // Only allow numeric input for phone number
+        let processedValue = value;
+        if (name === 'phoneNumber') {
+            processedValue = value.replace(/[^0-9]/g, '').substring(0, 10);
+        }
+        
+        setFormData(prev => ({
+            ...prev, [name]: processedValue
+        }));
+
+        // Real-time validation
+        validateField(name, processedValue);
     };
 
     const handlePasswordChange = (e) => {
         const {name, value} = e.target;
         setPasswordData(prev => ({
-            ...prev,
-            [name]: value
+            ...prev, [name]: value
         }));
     };
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
+
+        // Validate all fields before submission
+        const validationErrors = {};
+        Object.keys(formData).forEach(key => {
+            const error = validateField(key, formData[key]);
+            if (error) validationErrors[key] = error;
+        });
+
+        // Check if there are any validation errors
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+        
         try {
             setSaving(true);
             await residentAPI.updateProfile(formData);
             toast({
-                title: 'Success',
-                description: 'Profile updated successfully'
+                title: 'Success', description: 'Profile updated successfully'
             });
             fetchProfile(); // Refresh profile data
         } catch (error) {
@@ -153,9 +203,7 @@ const ResidentProfile = () => {
         // Validate passwords match
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             toast({
-                title: 'Error',
-                description: 'New passwords do not match',
-                variant: 'destructive'
+                title: 'Error', description: 'New passwords do not match', variant: 'destructive'
             });
             return;
         }
@@ -163,20 +211,16 @@ const ResidentProfile = () => {
         try {
             setChangingPassword(true);
             await residentAPI.changePassword({
-                currentPassword: passwordData.currentPassword,
-                newPassword: passwordData.newPassword
+                currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword
             });
 
             toast({
-                title: 'Success',
-                description: 'Password changed successfully'
+                title: 'Success', description: 'Password changed successfully'
             });
 
             // Reset password fields
             setPasswordData({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: ''
+                currentPassword: '', newPassword: '', confirmPassword: ''
             });
         } catch (error) {
             console.error('Error changing password:', error);
@@ -191,241 +235,260 @@ const ResidentProfile = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary"/>
-            </div>
-        );
+        return (<div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+        </div>);
     }
 
-    return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-                <p className="text-gray-600">Manage your personal information</p>
-            </div>
-
-            <Tabs defaultValue="profile" className="w-full">
-                <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-                    <TabsTrigger value="profile">Profile Information</TabsTrigger>
-                    <TabsTrigger value="security">Security</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="profile" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Profile Information</CardTitle>
-                            <CardDescription>View and edit your profile details</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleProfileUpdate} className="space-y-4">
-                                <div className="flex flex-col md:flex-row gap-6 mb-6">
-                                    <div className="flex flex-col items-center space-y-3">
-                                        <div
-                                            className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                                            {profilePhoto ? (
-                                                <img
-                                                    src={profilePhoto.preview}
-                                                    alt="Profile"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <FiUser className="w-16 h-16 text-gray-400"/>
-                                            )}
-                                        </div>
-                                        <div className="w-full max-w-xs">
-                                            <FileUpload
-                                                label="Update Profile Photo"
-                                                accept="image/*"
-                                                onChange={handleProfilePhotoUpload}
-                                                multiple={false}
-                                                variant="outlined"
-                                                size="sm"
-                                            />
-                                            {uploadingPhoto && (
-                                                <div className="flex items-center justify-center mt-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                                    <span className="text-xs">Uploading...</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="fullName">Full Name</Label>
-                                        <Input
-                                            id="fullName"
-                                            name="fullName"
-                                            value={formData.fullName}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="phoneNumber">Phone Number</Label>
-                                        <Input
-                                            id="phoneNumber"
-                                            name="phoneNumber"
-                                            value={formData.phoneNumber}
-                                            onChange={handleInputChange}
-                                            required
-                                            pattern="[0-9]{10}"
-                                            title="Phone number must be exactly 10 digits"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="age">Age</Label>
-                                        <Input
-                                            id="age"
-                                            name="age"
-                                            type="number"
-                                            min="18"
-                                            max="120"
-                                            value={formData.age}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="gender">Gender</Label>
-                                        <Select
-                                            value={formData.gender}
-                                            onValueChange={(value) => {
-                                                handleSelectChange('gender', value)
-                                            }}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select gender">{formData.gender}</SelectValue>
-                                            </SelectTrigger>
-
-                                            <SelectContent>
-                                                <SelectItem value="Male">Male</SelectItem>
-                                                <SelectItem value="Female">Female</SelectItem>
-                                                <SelectItem value="Other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="wing">Wing</Label>
-                                        <Select
-                                            value={formData.wing}
-                                            onValueChange={(value) => handleSelectChange('wing', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select wing"/>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {['A', 'B', 'C', 'D', 'E', 'F'].map(wing => (
-                                                    <SelectItem key={wing} value={wing}>{wing}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="flatNumber">Flat Number</Label>
-                                        <Input
-                                            id="flatNumber"
-                                            name="flatNumber"
-                                            value={formData.flatNumber}
-                                            onChange={handleInputChange}
-                                            pattern="^(([1-9]|1[0-4])0[1-4])$"
-                                            title="Flat number must be in format: 101-104, 201-204, ..., 1401-1404"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="residentType">Resident Type</Label>
-                                        <Select
-                                            value={formData.residentType}
-                                            onValueChange={(value) => handleSelectChange('residentType', value)}
-                                            required
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select resident type"/>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Owner">Owner</SelectItem>
-                                                <SelectItem value="Tenant">Tenant</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <Button type="submit" disabled={saving}>
-                                        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                        Save Changes
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="security" className="mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Change Password</CardTitle>
-                            <CardDescription>Update your password</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="currentPassword">Current Password</Label>
-                                    <Input
-                                        id="currentPassword"
-                                        name="currentPassword"
-                                        type="password"
-                                        value={passwordData.currentPassword}
-                                        onChange={handlePasswordChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="newPassword">New Password</Label>
-                                    <Input
-                                        id="newPassword"
-                                        name="newPassword"
-                                        type="password"
-                                        value={passwordData.newPassword}
-                                        onChange={handlePasswordChange}
-                                        required
-                                        minLength={6}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                                    <Input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type="password"
-                                        value={passwordData.confirmPassword}
-                                        onChange={handlePasswordChange}
-                                        required
-                                        minLength={6}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end">
-                                    <Button type="submit" disabled={changingPassword}>
-                                        {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                        Change Password
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+    return (<div className="space-y-6">
+        <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+            <p className="text-gray-600">Manage your personal information</p>
         </div>
-    );
+
+        <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+                <TabsTrigger value="profile">Profile Information</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Profile Information</CardTitle>
+                        <CardDescription>View and edit your profile details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleProfileUpdate} className="space-y-4">
+                            <div className="flex flex-col md:flex-row gap-6 mb-6">
+                                <div className="flex flex-col items-center space-y-3">
+                                    <div
+                                        className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+                                        {profilePhoto ? (<img
+                                            src={profilePhoto.preview}
+                                            alt="Profile"
+                                            className="w-full h-full object-cover"
+                                        />) : (<FiUser className="w-16 h-16 text-gray-400"/>)}
+                                    </div>
+                                    <div className="w-full max-w-xs">
+                                        <FileUpload
+                                            label="Update Profile Photo"
+                                            accept="image/*"
+                                            onChange={handleProfilePhotoUpload}
+                                            multiple={false}
+                                            variant="outlined"
+                                            size="sm"
+                                        />
+                                        {uploadingPhoto && (<div className="flex items-center justify-center mt-2">
+                                            <Loader2 className="h-4 w-4 animate-spin mr-1"/>
+                                            <span className="text-xs">Uploading...</span>
+                                        </div>)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="fullName">Full Name</Label>
+                                    <Input
+                                        id="fullName"
+                                        name="fullName"
+                                        value={formData.fullName}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                                    <Input
+                                        id="phoneNumber"
+                                        name="phoneNumber"
+                                        value={formData.phoneNumber}
+                                        onChange={handleInputChange}
+                                        required
+                                        pattern="[0-9]{10}"
+                                        title="Phone number must be exactly 10 digits"
+                                        maxLength="10"
+                                        placeholder="Enter 10-digit phone number"
+                                    />
+                                    {errors.phoneNumber && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="age">Age</Label>
+                                    <Input
+                                        id="age"
+                                        name="age"
+                                        type="number"
+                                        min="18"
+                                        max="120"
+                                        value={formData.age}
+                                        onChange={handleInputChange}
+                                    />
+                                    {errors.age && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.age}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="gender">Gender</Label>
+                                    <Select
+                                        value={formData.gender}
+                                        onValueChange={(value) => {
+                                            handleSelectChange('gender', value)
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select gender">{formData.gender}</SelectValue>
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="wing">Wing</Label>
+                                    <Select
+                                        value={formData.wing}
+                                        onValueChange={(value) => {
+                                            handleSelectChange('wing', value)
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select wing">
+                                                {formData.wing}
+                                            </SelectValue>
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            <SelectItem value="A">A</SelectItem>
+                                            <SelectItem value="B">B</SelectItem>
+                                            <SelectItem value="C">C</SelectItem>
+                                            <SelectItem value="D">D</SelectItem>
+                                            <SelectItem value="E">E</SelectItem>
+                                            <SelectItem value="F">F</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="flatNumber">Flat Number</Label>
+                                    <Input
+                                        id="flatNumber"
+                                        name="flatNumber"
+                                        value={formData.flatNumber}
+                                        onChange={handleInputChange}
+                                        pattern="^(([1-9]|1[0-4])0[1-4])$"
+                                        title="Flat number must be in format: 101-104, 201-204, ..., 1401-1404"
+                                        maxLength="4"
+                                        placeholder="e.g., 101, 502, 1204"
+                                    />
+                                    {errors.flatNumber && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.flatNumber}</p>
+                                    )}
+                                    <p className="text-gray-500 text-xs mt-1">
+                                        Format: Floor (1-14) + Flat (01-04). Example: 101, 502, 1404
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="residentType">Resident Type</Label>
+                                    <Select
+                                        value={formData.residentType}
+                                        onValueChange={(value) => {
+                                            handleSelectChange('residentType', value)
+                                        }}
+                                        required
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select resident type">
+                                                {formData.residentType}
+                                            </SelectValue>
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            <SelectItem value="Owner">Owner</SelectItem>
+                                            <SelectItem value="Tenant">Tenant</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button type="submit" disabled={saving}>
+                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                    Save Changes
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="security" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Change Password</CardTitle>
+                        <CardDescription>Update your password</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="currentPassword">Current Password</Label>
+                                <Input
+                                    id="currentPassword"
+                                    name="currentPassword"
+                                    type="password"
+                                    value={passwordData.currentPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="newPassword">New Password</Label>
+                                <Input
+                                    id="newPassword"
+                                    name="newPassword"
+                                    type="password"
+                                    value={passwordData.newPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                <Input
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    type="password"
+                                    value={passwordData.confirmPassword}
+                                    onChange={handlePasswordChange}
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button type="submit" disabled={changingPassword}>
+                                    {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                    Change Password
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
+    </div>);
 };
 
 export default ResidentProfile;

@@ -21,7 +21,7 @@ const familyMemberSchema = new mongoose.Schema({
   phone: {
     type: String,
     trim: true,
-    maxlength: [15, 'Phone number cannot exceed 15 characters']
+    match: [/^[0-9]{10}$/, 'Phone number must be exactly 10 digits']
   },
   email: {
     type: String,
