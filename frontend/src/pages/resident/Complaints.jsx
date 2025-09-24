@@ -318,7 +318,8 @@ const ResidentComplaints = () => {
                     <h1 className="text-2xl font-bold text-gray-900">My Complaints</h1>
                     <p className="text-gray-600">Submit and track your complaints</p>
                 </div>
-                <Button onClick={openCreateModal}>
+                <Button onClick={openCreateModal} className={'!w-[200px]'}
+                        spanClasses={'flex justify-center items-center'}>
                     <Plus className="h-4 w-4 mr-2"/>
                     New Complaint
                 </Button>

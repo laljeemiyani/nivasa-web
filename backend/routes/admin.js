@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getDashboardStats,
-  getResidents,
-  updateResidentStatus,
-  getComplaints,
-  updateComplaintStatus,
-  deleteComplaint,
-  getVehicles,
-  updateVehicleStatus
+    getDashboardStats,
+    getResidents,
+    updateResidentStatus,
+    getComplaints,
+    updateComplaintStatus,
+    deleteComplaint,
+    getVehicles,
+    updateVehicleStatus
 } = require('../controllers/adminController');
 const adminNotificationController = require('../controllers/adminNotificationController');
-const { authenticateToken, requireAdmin } = require('../middlewares/auth');
-const { validatePagination, validateObjectId } = require('../middlewares/validation');
+const {authenticateToken, requireAdmin} = require('../middlewares/auth');
+const {validatePagination, validateObjectId} = require('../middlewares/validation');
 
 // All admin routes require authentication and admin role
 router.use(authenticateToken);

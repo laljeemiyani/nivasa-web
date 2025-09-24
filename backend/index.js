@@ -24,7 +24,7 @@ const vehicleRoutes = require('./routes/vehicles');
 const notificationRoutes = require('./routes/notifications');
 
 // Import middleware
-const { handleUploadError } = require('./middlewares/upload');
+const {handleUploadError} = require('./middlewares/upload');
 
 // Connect to database
 connectDB();
@@ -39,30 +39,30 @@ app.use(compression());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: config.RATE_LIMIT_WINDOW_MS, // from environment
-  max: config.RATE_LIMIT_MAX_REQUESTS, // from environment
-  message: {
-    success: false,
-    message: 'Too many requests from this IP, please try again later.'
-  }
+    windowMs: config.RATE_LIMIT_WINDOW_MS, // from environment
+    max: config.RATE_LIMIT_MAX_REQUESTS, // from environment
+    message: {
+        success: false,
+        message: 'Too many requests from this IP, please try again later.'
+    }
 });
 app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: config.FRONTEND_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+    origin: config.FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({limit: '10mb'}));
+app.use(express.urlencoded({extended: true, limit: '10mb'}));
 
 // Logging middleware
 if (config.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+    app.use(morgan('dev'));
 }
 
 // Static files
@@ -79,22 +79,22 @@ app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Nivasa Society Management API is running',
-    timestamp: new Date().toISOString(),
-    environment: config.NODE_ENV
-  });
+    res.json({
+        success: true,
+        message: 'Nivasa Society Management API is running',
+        timestamp: new Date().toISOString(),
+        environment: config.NODE_ENV
+    });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Welcome to Nivasa Society Management System API',
-    version: '1.0.0',
-    documentation: '/api/health'
-  });
+    res.json({
+        success: true,
+        message: 'Welcome to Nivasa Society Management System API',
+        version: '1.0.0',
+        documentation: '/api/health'
+    });
 });
 
 // Error handling middleware
@@ -102,28 +102,28 @@ app.use(handleUploadError);
 
 // 404 handler - catch all routes that don't match any API routes
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found'
-  });
+    res.status(404).json({
+        success: false,
+        message: 'API endpoint not found'
+    });
 });
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global error handler:', error);
-  
-  res.status(error.status || 500).json({
-    success: false,
-    message: error.message || 'Internal server error',
-    ...(config.NODE_ENV === 'development' && { stack: error.stack })
-  });
+    console.error('Global error handler:', error);
+
+    res.status(error.status || 500).json({
+        success: false,
+        message: error.message || 'Internal server error',
+        ...(config.NODE_ENV === 'development' && {stack: error.stack})
+    });
 });
 
 const PORT = config.PORT;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Environment: ${config.NODE_ENV}`);
-  console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
-  console.log(`📁 Upload path: ${config.UPLOAD_PATH}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Environment: ${config.NODE_ENV}`);
+    console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
+    console.log(`📁 Upload path: ${config.UPLOAD_PATH}`);
 });
