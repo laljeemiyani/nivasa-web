@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const {validateCommonEmail} = require('../utils/validators');
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -14,7 +15,12 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+        validate: {
+            validator: function (v) {
+                return validateCommonEmail(v);
+            },
+            message: 'Please enter a valid email address'
+        }
     },
     password: {
         type: String,
@@ -45,7 +51,7 @@ const userSchema = new mongoose.Schema({
     flatNumber: {
         type: String,
         trim: true,
-        match: [/^(([1-9]|1[0-4])0[1-4])$/, 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)']
+        match: [/^([1-9]|1[0-4])(0[1-4])$/, 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)']
     },
     residentType: {
         type: String,

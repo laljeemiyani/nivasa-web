@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { 
-  HomeIcon, 
-  UserCircleIcon, 
-  ExclamationTriangleIcon, 
-  MegaphoneIcon, 
-  UsersIcon,
-  TruckIcon,
-  Bars3Icon,
-  XMarkIcon,
+import {useState} from 'react';
+import {Link, Outlet, useLocation, useNavigate} from 'react-router-dom';
+import {useAuth} from '../context/AuthContext';
+import {
   ArrowRightOnRectangleIcon,
-  BellIcon
+  Bars3Icon,
+  BellIcon,
+  ExclamationTriangleIcon,
+  HomeIcon,
+  MegaphoneIcon,
+  TruckIcon,
+  UserCircleIcon,
+  UsersIcon,
+  XMarkIcon
 } from '../components/ui/Icons';
 import NotificationBell from '../components/NotificationBell';
 
@@ -131,7 +131,15 @@ const ResidentLayout = () => {
               
               {/* User menu */}
               <div className="flex items-center gap-x-2">
-                <UserCircleIcon className="h-8 w-8 text-gray-400" />
+                  {user?.profilePhoto ? (
+                      <img
+                          src={`${import.meta.env.VITE_API_URL}/uploads/profile_photos/${user.profilePhoto}`}
+                          alt="Profile"
+                          className="h-8 w-8 rounded-full object-cover"
+                      />
+                  ) : (
+                      <UserCircleIcon className="h-8 w-8 text-gray-400"/>
+                  )}
                 <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
                   <p className="text-xs text-gray-500">

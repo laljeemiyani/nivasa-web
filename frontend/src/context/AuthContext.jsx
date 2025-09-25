@@ -1,6 +1,6 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI } from '../services/api';
-import { toast } from 'react-toastify';
+import {createContext, useContext, useEffect, useReducer} from 'react';
+import {authAPI} from '../services/api';
+import {toast} from 'react-toastify';
 
 const AuthContext = createContext();
 
@@ -166,6 +166,24 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Password change failed';
+        toast.error(errorMessage);
+        return {success: false, error: errorMessage};
+    }
+  };
+
+    const updateProfilePhoto = async (formData) => {
+        try {
+            const response = await authAPI.updateProfilePhoto(formData);
+            const {user} = response.data.data;
+
+            // Update localStorage
+            localStorage.setItem('user', JSON.stringify(user));
+
+            dispatch({type: 'UPDATE_USER', payload: user});
+            toast.success('Profile photo updated successfully!');
+            return {success: true, user};
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Profile photo update failed';
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -182,6 +200,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     changePassword,
+      updateProfilePhoto,
     clearError,
   };
 
