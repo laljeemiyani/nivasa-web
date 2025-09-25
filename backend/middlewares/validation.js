@@ -120,31 +120,47 @@ const validateVehicle = [
     body('vehicleType')
         .notEmpty()
         .trim()
-        .withMessage('Vehicle type is required'),
+        .withMessage('Vehicle type is required')
+        .custom((value) => {
+            const validTypes = ['Car', 'Bike', 'EV', 'Truck', 'Bus'];
+            const normalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+            if (!validTypes.includes(normalizedValue)) {
+                throw new Error('Vehicle type must be one of: Car, Bike, EV, Truck, Bus');
+            }
+            return true;
+        }),
 
-    body('manufacturer')
+    body('vehicleName')
         .notEmpty()
         .trim()
-        .isLength({min: 2, max: 100})
-        .withMessage('Vehicle name must be between 2 and 100 characters'),
+        .isLength({min: 2, max: 50})
+        .withMessage('Vehicle name must be between 2 and 50 characters'),
 
-    body('registrationNumber')
+    body('vehicleNumber')
         .notEmpty()
         .trim()
         .matches(/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/i)
-        .withMessage('Vehicle number must be a valid Indian registration number (e.g., KA01AB1234)'),
+        .withMessage('Vehicle number must be a valid Indian registration number (e.g., KA01AB1234)')
+        .isLength({max: 20})
+        .withMessage('Vehicle number cannot exceed 20 characters'),
 
-    body('model')
+    body('vehicleModel')
+        .notEmpty()
+        .trim()
+        .isLength({min: 1, max: 50})
+        .withMessage('Vehicle model is required and cannot exceed 50 characters'),
+
+    body('vehicleColor')
+        .notEmpty()
+        .trim()
+        .isLength({min: 1, max: 30})
+        .withMessage('Vehicle color is required and cannot exceed 30 characters'),
+
+    body('parkingSlot')
         .optional({checkFalsy: true})
         .trim()
-        .isLength({max: 50})
-        .withMessage('Vehicle model cannot exceed 50 characters'),
-
-    body('color')
-        .optional({checkFalsy: true})
-        .trim()
-        .isLength({max: 30})
-        .withMessage('Vehicle color cannot exceed 30 characters'),
+        .matches(/^[A-F]-([1-9]|1[0-9])[1-9]-P[1-2]$/)
+        .withMessage('Parking slot must be in format A-503-P1 (e.g., A-123-P1)'),
 
     handleValidationErrors,
 ];

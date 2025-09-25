@@ -256,11 +256,53 @@ const verifyToken = async (req, res) => {
     }
 };
 
+// Update profile photo
+const updateProfilePhoto = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No photo uploaded'
+            });
+        }
+
+        // Update the user's profile photo field in the database
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            {profilePhotoUrl: req.file.filename},
+            {new: true, runValidators: true}
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Profile photo updated successfully',
+            data: {
+                user: user.toJSON()
+            }
+        });
+    } catch (error) {
+        console.error('Update profile photo error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update profile photo',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     register,
     login,
     getProfile,
     updateProfile,
     changePassword,
-    verifyToken
+    verifyToken,
+    updateProfilePhoto
 };

@@ -21,11 +21,11 @@ const Notifications = () => {
                 limit: 10
             });
 
-            setNotifications(response.data.notifications || []);
-            setPagination(response.data.pagination || {
+            setNotifications(response.data.data.notifications || []);
+            setPagination(response.data.data.pagination || {
                 currentPage: 1,
                 totalPages: 1,
-                totalItems: 0
+                totalItems: response.data.data.pagination?.totalItems || 0
             });
         } catch (error) {
             console.error('Error fetching notifications:', error);

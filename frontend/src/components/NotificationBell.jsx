@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { BellIcon } from './ui/Icons';
-import { notificationAPI } from '../services/notificationService';
-import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '../context/AuthContext';
+import {useEffect, useState} from 'react';
+import {Link} from 'react-router-dom';
+import {BellIcon} from './ui/Icons';
+import {notificationAPI} from '../services/notificationService';
+import {formatDistanceToNow} from 'date-fns';
+import {useAuth} from '../context/AuthContext';
 
 const NotificationBell = () => {
   const { user } = useAuth();
@@ -16,8 +16,15 @@ const NotificationBell = () => {
     try {
       setIsLoading(true);
       const response = await notificationAPI.getNotifications({ limit: 5 });
-      setNotifications(response.data.notifications || []);
-      setUnreadCount(response.data.unreadCount || 0);
+      setNotifications(response.data.data.notifications || []);
+
+      // Get unread count separately since it's a different endpoint
+      try {
+        const countResponse = await notificationAPI.getUnreadCount();
+        setUnreadCount(countResponse.data.data.count || 0);
+      } catch (countError) {
+        console.error('Error fetching unread count:', countError);
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

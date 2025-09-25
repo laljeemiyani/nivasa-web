@@ -47,7 +47,7 @@ const ResidentComplaints = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        category: 'Maintenance'
+        category: 'maintenance'
     });
     const [attachment, setAttachment] = useState(null);
 
@@ -77,7 +77,7 @@ const ResidentComplaints = () => {
             }
 
             setComplaints(response.data.data.complaints || []);
-            setTotalPages(response.data.pagination?.totalPages || 1);
+            setTotalPages(response.data.data?.pagination?.totalPages || 1);
 
         } catch (error) {
             console.error("Error fetching complaints:", error);
@@ -115,7 +115,7 @@ const ResidentComplaints = () => {
         setFormData({
             title: '',
             description: '',
-            category: 'Maintenance'
+            category: 'maintenance'
         });
         setIsModalOpen(true);
     };
@@ -126,7 +126,7 @@ const ResidentComplaints = () => {
         setFormData({
             title: complaint.title,
             description: complaint.description,
-            category: complaint.category
+            category: complaint.category // Keep as lowercase since that's what the Select expects
         });
         setIsModalOpen(true);
     };
@@ -146,7 +146,7 @@ const ResidentComplaints = () => {
             setFormData({
                 title: '',
                 description: '',
-                category: 'Maintenance'
+                category: 'maintenance'
             });
         }, 100);
     };
@@ -170,10 +170,18 @@ const ResidentComplaints = () => {
     };
 
     const handleSelectChange = (name, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        // For category, store the backend-compatible lowercase value
+        if (name === 'category') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value.toLowerCase()
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -182,18 +190,24 @@ const ResidentComplaints = () => {
             setSubmitting(true);
 
             if (modalMode === 'create') {
+                // Normalize category to lowercase to match backend validation
+                const normalizedFormData = {
+                    ...formData,
+                    category: formData.category.toLowerCase()
+                };
+
                 if (attachment) {
                     // Create complaint with attachment
                     const formDataWithFile = new FormData();
-                    formDataWithFile.append('title', formData.title);
-                    formDataWithFile.append('description', formData.description);
-                    formDataWithFile.append('category', formData.category);
+                    formDataWithFile.append('title', normalizedFormData.title);
+                    formDataWithFile.append('description', normalizedFormData.description);
+                    formDataWithFile.append('category', normalizedFormData.category);
                     formDataWithFile.append('complaintAttachment', attachment);
 
                     await residentAPI.createComplaintWithAttachment(formDataWithFile);
                 } else {
                     // Create complaint without attachment
-                    await residentAPI.createComplaint(formData);
+                    await residentAPI.createComplaint(normalizedFormData);
                 }
 
                 toast({
@@ -201,7 +215,12 @@ const ResidentComplaints = () => {
                     description: 'Complaint submitted successfully'
                 });
             } else if (modalMode === 'edit') {
-                await residentAPI.updateComplaint(selectedComplaint._id, formData);
+                // Normalize category to lowercase to match backend validation
+                const normalizedFormData = {
+                    ...formData,
+                    category: formData.category.toLowerCase()
+                };
+                await residentAPI.updateComplaint(selectedComplaint._id, normalizedFormData);
                 toast({
                     title: 'Success',
                     description: 'Complaint updated successfully'
@@ -259,18 +278,22 @@ const ResidentComplaints = () => {
 
     const getCategoryColor = (category) => {
         switch (category) {
-            case 'Maintenance':
+            case 'maintenance':
                 return 'blue';
-            case 'Security':
+            case 'security':
                 return 'red';
-            case 'Cleanliness':
+            case 'cleaning':
                 return 'green';
-            case 'Noise':
+            case 'noise':
                 return 'orange';
-            case 'Parking':
+            case 'parking':
                 return 'purple';
-            case 'Other':
+            case 'other':
                 return 'secondary';
+            case 'plumbing':
+                return 'default';
+            case 'electrical':
+                return 'default';
             default:
                 return 'secondary';
         }
@@ -399,7 +422,7 @@ const ResidentComplaints = () => {
                                         </div>
                                         <div className="flex space-x-2 ml-4">
                                             <Badge variant={getCategoryColor(complaint.category)}>
-                                                {complaint.category}
+                                                {complaint.category.charAt(0).toUpperCase() + complaint.category.slice(1)}
                                             </Badge>
                                             <Badge variant={getStatusColor(complaint.status)}>
                                                 {complaint.status}
@@ -476,7 +499,7 @@ const ResidentComplaints = () => {
                                         {selectedComplaint.status}
                                     </Badge>
                                     <Badge variant={getCategoryColor(selectedComplaint.category)}>
-                                        {selectedComplaint.category}
+                                        {selectedComplaint.category.charAt(0).toUpperCase() + selectedComplaint.category.slice(1)}
                                     </Badge>
                                 </div>
                             )}
@@ -501,15 +524,23 @@ const ResidentComplaints = () => {
                                     disabled={modalMode === 'view'}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category"/>
+                                        <SelectValue placeholder="Select category">
+                                            {modalMode === 'view' && selectedComplaint
+                                                ? selectedComplaint.category.charAt(0).toUpperCase() + selectedComplaint.category.slice(1)
+                                                : formData.category
+                                                    ? formData.category.charAt(0).toUpperCase() + formData.category.slice(1)
+                                                    : 'Select category'}
+                                        </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                                        <SelectItem value="Security">Security</SelectItem>
-                                        <SelectItem value="Cleanliness">Cleanliness</SelectItem>
-                                        <SelectItem value="Noise">Noise</SelectItem>
-                                        <SelectItem value="Parking">Parking</SelectItem>
-                                        <SelectItem value="Other">Other</SelectItem>
+                                        <SelectItem value="plumbing">Plumbing</SelectItem>
+                                        <SelectItem value="electrical">Electrical</SelectItem>
+                                        <SelectItem value="security">Security</SelectItem>
+                                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                                        <SelectItem value="noise">Noise</SelectItem>
+                                        <SelectItem value="parking">Parking</SelectItem>
+                                        <SelectItem value="cleaning">Cleaning</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

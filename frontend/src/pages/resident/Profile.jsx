@@ -9,8 +9,23 @@ import FileUpload from '../../components/ui/FileUpload.jsx';
 import {Label} from '../../components/ui/Label.jsx';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/Select.jsx';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '../../components/ui/Tabs.jsx';
-import {Loader2} from 'lucide-react';
-import {FiUser} from 'react-icons/fi';
+import {
+    AlertCircle,
+    Calendar,
+    Camera,
+    CheckCircle2,
+    Edit3,
+    Eye,
+    EyeOff,
+    Home,
+    Loader2,
+    MapPin,
+    Phone,
+    Save,
+    Shield,
+    User,
+    Users
+} from 'lucide-react';
 
 const ResidentProfile = () => {
     const {toast} = useToast();
@@ -21,6 +36,10 @@ const ResidentProfile = () => {
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
     const [profile, setProfile] = useState(null);
     const [profilePhoto, setProfilePhoto] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [showPasswords, setShowPasswords] = useState({
+        current: false, new: false, confirm: false
+    });
     const [formData, setFormData] = useState({
         fullName: '', phoneNumber: '', age: '', gender: '', wing: '', flatNumber: '', residentType: ''
     });
@@ -39,19 +58,26 @@ const ResidentProfile = () => {
         try {
             setUploadingPhoto(true);
 
-            const formData = new FormData();
-            formData.append('profilePhoto', file);
+            const formDataUpload = new FormData();
+            formDataUpload.append('profilePhoto', file);
 
-            const result = await updateProfilePhoto(formData);
+            const result = await updateProfilePhoto(formDataUpload);
 
             if (result.success) {
                 setProfilePhoto({
                     preview: URL.createObjectURL(file), name: file.name
                 });
+                toast({
+                    title: 'Success', description: 'Profile photo updated successfully',
+                });
             }
         } catch (error) {
             console.error('Error uploading profile photo:', error);
-            toast.error(error.response?.data?.message || 'Failed to upload profile photo');
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to upload profile photo',
+                variant: 'destructive'
+            });
         } finally {
             setUploadingPhoto(false);
         }
@@ -63,14 +89,12 @@ const ResidentProfile = () => {
             const response = await residentAPI.getProfile();
             setProfile(response.data.data.user);
 
-            // Set form data from profile
             const user = response.data.data.user;
 
-            // Set profile photo if available
-            if (user.profilePhoto) {
+            if (user.profilePhotoUrl) {
                 setProfilePhoto({
-                    preview: `${import.meta.env.VITE_API_URL}/uploads/profile_photos/${user.profilePhoto}`,
-                    name: user.profilePhoto
+                    preview: `${import.meta.env.VITE_API_URL}/uploads/profile_photos/${user.profilePhotoUrl}`,
+                    name: user.profilePhotoUrl
                 });
             }
 
@@ -97,8 +121,6 @@ const ResidentProfile = () => {
         setFormData(prev => ({
             ...prev, [name]: value
         }));
-
-        // Real-time validation
         validateField(name, value);
     };
 
@@ -125,7 +147,6 @@ const ResidentProfile = () => {
                 break;
         }
 
-        // Update the errors state
         setErrors(prev => {
             const newErrors = {...prev};
             if (errorMessage) {
@@ -136,23 +157,21 @@ const ResidentProfile = () => {
             return newErrors;
         });
 
-        return errorMessage; // Return the error message for immediate use
+        return errorMessage;
     };
 
     const handleInputChange = (e) => {
         const {name, value} = e.target;
 
-        // Only allow numeric input for phone number
         let processedValue = value;
         if (name === 'phoneNumber') {
             processedValue = value.replace(/[^0-9]/g, '').substring(0, 10);
         }
-        
+
         setFormData(prev => ({
             ...prev, [name]: processedValue
         }));
 
-        // Real-time validation
         validateField(name, processedValue);
     };
 
@@ -163,29 +182,34 @@ const ResidentProfile = () => {
         }));
     };
 
+    const togglePasswordVisibility = (field) => {
+        setShowPasswords(prev => ({
+            ...prev, [field]: !prev[field]
+        }));
+    };
+
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
 
-        // Validate all fields before submission
         const validationErrors = {};
         Object.keys(formData).forEach(key => {
             const error = validateField(key, formData[key]);
             if (error) validationErrors[key] = error;
         });
 
-        // Check if there are any validation errors
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-        
+
         try {
             setSaving(true);
             await residentAPI.updateProfile(formData);
             toast({
-                title: 'Success', description: 'Profile updated successfully'
+                title: 'Success', description: 'Profile updated successfully', icon: <CheckCircle2 className="w-5 h-5"/>
             });
-            fetchProfile(); // Refresh profile data
+            setIsEditing(false);
+            fetchProfile();
         } catch (error) {
             console.error('Error updating profile:', error);
             toast({
@@ -201,10 +225,12 @@ const ResidentProfile = () => {
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
 
-        // Validate passwords match
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             toast({
-                title: 'Error', description: 'New passwords do not match', variant: 'destructive'
+                title: 'Error',
+                description: 'New passwords do not match',
+                variant: 'destructive',
+                icon: <AlertCircle className="w-5 h-5"/>
             });
             return;
         }
@@ -216,10 +242,11 @@ const ResidentProfile = () => {
             });
 
             toast({
-                title: 'Success', description: 'Password changed successfully'
+                title: 'Success',
+                description: 'Password changed successfully',
+                icon: <CheckCircle2 className="w-5 h-5"/>
             });
 
-            // Reset password fields
             setPasswordData({
                 currentPassword: '', newPassword: '', confirmPassword: ''
             });
@@ -235,43 +262,115 @@ const ResidentProfile = () => {
         }
     };
 
+    const getFieldIcon = (fieldName) => {
+        const icons = {
+            fullName: User,
+            phoneNumber: Phone,
+            age: Calendar,
+            gender: Users,
+            wing: MapPin,
+            flatNumber: Home,
+            residentType: Users
+        };
+        return icons[fieldName] || User;
+    };
+
     if (loading) {
-        return (<div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+        return (<div className="flex flex-col justify-center items-center h-96 space-y-4">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p className="text-gray-600">Loading your profile...</p>
         </div>);
     }
 
-    return (<div className="space-y-6">
-        <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-            <p className="text-gray-600">Manage your personal information</p>
-        </div>
+    return (<div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="max-w-5xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Management</h1>
+                        <p className="text-gray-600">Manage your personal information and account settings</p>
+                    </div>
+                    <div className="mt-4 md:mt-0 flex items-center space-x-4">
+                        <div
+                            className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center border-2 border-gray-200">
+                            {profilePhoto ? (<img src={profilePhoto.preview} alt="Profile"
+                                                  className="w-14 h-14 rounded-full object-cover"/>) : (
+                                <User className="w-8 h-8 text-gray-400"/>)}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full md:w-[400px] grid-cols-2">
-                <TabsTrigger value="profile">Profile Information</TabsTrigger>
-                <TabsTrigger value="security">Security</TabsTrigger>
-            </TabsList>
+            {/* Main Content */}
+            <Tabs defaultValue="profile" className="w-full">
+                <TabsList
+                    className="grid w-full md:w-[400px] grid-cols-2 bg-white border border-gray-200 rounded-lg p-1">
+                    <TabsTrigger
+                        value="profile"
+                        className="flex items-center space-x-2 rounded-md data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                    >
+                        <User className="w-4 h-4"/>
+                        <span>Profile</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="security"
+                        className="flex items-center space-x-2 rounded-md data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                    >
+                        <Shield className="w-4 h-4"/>
+                        <span>Security</span>
+                    </TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="profile" className="mt-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Profile Information</CardTitle>
-                        <CardDescription>View and edit your profile details</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleProfileUpdate} className="space-y-4">
-                            <div className="flex flex-col md:flex-row gap-6 mb-6">
-                                <div className="flex flex-col items-center space-y-3">
-                                    <div
-                                        className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                                        {profilePhoto ? (<img
-                                            src={profilePhoto.preview}
-                                            alt="Profile"
-                                            className="w-full h-full object-cover"
-                                        />) : (<FiUser className="w-16 h-16 text-gray-400"/>)}
+                <TabsContent value="profile" className="mt-6">
+                    <Card className="border border-gray-200 shadow-sm">
+                        <CardHeader className="bg-gray-50 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-xl text-gray-900 flex items-center space-x-2">
+                                        <User className="w-5 h-5 text-blue-600"/>
+                                        <span>Personal Information</span>
+                                    </CardTitle>
+                                    <CardDescription className="text-gray-600 mt-1">
+                                        View and update your profile details
+                                    </CardDescription>
+                                </div>
+                                <Button
+                                    onClick={() => setIsEditing(!isEditing)}
+                                    className={'!w-[200px]'}
+                                    spanClasses={'flex justify-center items-center'}
+                                >
+                                    {isEditing ? (<>
+                                        <Eye className="h-4 w-4 mr-2"/>
+                                        View Mode
+                                    </>) : (<>
+                                        <Edit3 className="h-4 w-4 mr-2"/>
+                                        Edit Profile
+                                    </>)}
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <form onSubmit={handleProfileUpdate} className="space-y-6">
+                                {/* Profile Photo Section */}
+                                <div
+                                    className="flex flex-col items-center space-y-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="relative group">
+                                        <div
+                                            className="w-32 h-32 rounded-full overflow-hidden bg-white flex items-center justify-center border-4 border-gray-200 shadow-sm">
+                                            {profilePhoto ? (<img
+                                                src={profilePhoto.preview}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />) : (<User className="w-16 h-16 text-gray-400"/>)}
+                                        </div>
+                                        {isEditing && (<div
+                                            className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                            <Camera className="w-6 h-6 text-white"/>
+                                        </div>)}
                                     </div>
-                                    <div className="w-full max-w-xs">
+
+                                    {isEditing && (<div className="w-full max-w-xs">
                                         <FileUpload
                                             label="Update Profile Photo"
                                             accept="image/*"
@@ -280,215 +379,195 @@ const ResidentProfile = () => {
                                             variant="outlined"
                                             size="sm"
                                         />
-                                        {uploadingPhoto && (<div className="flex items-center justify-center mt-2">
-                                            <Loader2 className="h-4 w-4 animate-spin mr-1"/>
-                                            <span className="text-xs">Uploading...</span>
+                                        {uploadingPhoto && (<div
+                                            className="flex items-center justify-center mt-2 text-blue-600">
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2"/>
+                                            <span className="text-sm">Uploading...</span>
                                         </div>)}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="fullName">Full Name</Label>
-                                    <Input
-                                        id="fullName"
-                                        name="fullName"
-                                        value={formData.fullName}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
+                                    </div>)}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                                    <Input
-                                        id="phoneNumber"
-                                        name="phoneNumber"
-                                        value={formData.phoneNumber}
-                                        onChange={handleInputChange}
-                                        required
-                                        pattern="[0-9]{10}"
-                                        title="Phone number must be exactly 10 digits"
-                                        maxLength="10"
-                                        placeholder="Enter 10-digit phone number"
-                                    />
-                                    {errors.phoneNumber && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
-                                    )}
+                                {/* Form Fields */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {Object.entries(formData).map(([key, value]) => {
+                                        const IconComponent = getFieldIcon(key);
+                                        return (<div key={key} className="space-y-2">
+                                            <Label
+                                                htmlFor={key}
+                                                className="text-sm font-medium text-gray-700 flex items-center space-x-2"
+                                            >
+                                                <IconComponent className="w-4 h-4 text-gray-500"/>
+                                                <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                                                {['fullName', 'phoneNumber', 'residentType'].includes(key) && (
+                                                    <span className="text-red-500 text-xs">*</span>)}
+                                            </Label>
+
+                                            {['gender', 'wing', 'residentType'].includes(key) ? (<Select
+                                                value={value}
+                                                onValueChange={(val) => handleSelectChange(key, val)}
+                                                disabled={!isEditing}
+                                            >
+                                                <SelectTrigger
+                                                    className={`h-10 border-gray-300 ${isEditing ? 'bg-white hover:border-gray-400 focus:border-blue-500' : 'bg-gray-100'} ${errors[key] ? 'border-red-300' : ''}`}>
+                                                    <SelectValue
+                                                        placeholder={`Select ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`}>
+                                                        {value}
+                                                    </SelectValue>
+                                                </SelectTrigger>
+                                                <SelectContent className="border-gray-200">
+                                                    {key === 'gender' && (<>
+                                                        <SelectItem value="Male">Male</SelectItem>
+                                                        <SelectItem value="Female">Female</SelectItem>
+                                                        <SelectItem value="Other">Other</SelectItem>
+                                                    </>)}
+                                                    {key === 'wing' && ['A', 'B', 'C', 'D', 'E', 'F'].map(wing => (
+                                                        <SelectItem key={wing}
+                                                                    value={wing}>Wing {wing}</SelectItem>))}
+                                                    {key === 'residentType' && (<>
+                                                        <SelectItem value="Owner">Owner</SelectItem>
+                                                        <SelectItem value="Tenant">Tenant</SelectItem>
+                                                    </>)}
+                                                </SelectContent>
+                                            </Select>) : (<Input
+                                                id={key}
+                                                name={key}
+                                                type={key === 'age' ? 'number' : 'text'}
+                                                value={value}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                required={['fullName', 'phoneNumber'].includes(key)}
+                                                className={`h-10 border-gray-300 ${isEditing ? 'bg-white hover:border-gray-400 focus:border-blue-500' : 'bg-gray-100'} ${errors[key] ? 'border-red-300' : ''}`}
+                                                placeholder={key === 'flatNumber' ? 'e.g., 101, 502, 1204' : `Enter ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                                                {...(key === 'phoneNumber' && {
+                                                    maxLength: "10", pattern: "[0-9]{10}"
+                                                })}
+                                                {...(key === 'age' && {min: "18", max: "120"})}
+                                                {...(key === 'flatNumber' && {
+                                                    pattern: "^(([1-9]|1[0-4])0[1-4])$", maxLength: "4"
+                                                })}
+                                            />)}
+
+                                            {errors[key] && (<div
+                                                className="flex items-center space-x-2 text-red-600 text-sm">
+                                                <AlertCircle className="w-4 h-4"/>
+                                                <span>{errors[key]}</span>
+                                            </div>)}
+
+                                            {key === 'flatNumber' && !errors[key] && (
+                                                <p className="text-gray-500 text-xs">
+                                                    Format: Floor (1-14) + Flat (01-04). Example: 101, 502, 1404
+                                                </p>)}
+                                        </div>);
+                                    })}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="age">Age</Label>
-                                    <Input
-                                        id="age"
-                                        name="age"
-                                        type="number"
-                                        min="18"
-                                        max="120"
-                                        value={formData.age}
-                                        onChange={handleInputChange}
-                                    />
-                                    {errors.age && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.age}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="gender">Gender</Label>
-                                    <Select
-                                        value={formData.gender}
-                                        onValueChange={(value) => {
-                                            handleSelectChange('gender', value)
+                                {isEditing && (<div
+                                    className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setErrors({});
                                         }}
+                                        className="px-6 py-2.5 rounded-2xl font-medium transition-all duration-200 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select gender">{formData.gender}</SelectValue>
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                            <SelectItem value="Male">Male</SelectItem>
-                                            <SelectItem value="Female">Female</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="wing">Wing</Label>
-                                    <Select
-                                        value={formData.wing}
-                                        onValueChange={(value) => {
-                                            handleSelectChange('wing', value)
-                                        }}
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={saving || Object.keys(errors).length > 0}
+                                        className="px-6 py-2.5 rounded-2xl font-medium transition-all duration-200 shadow-md hover:shadow-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select wing">
-                                                {formData.wing}
-                                            </SelectValue>
-                                        </SelectTrigger>
+                                          <span className="flex justify-center items-center">
+                                            {saving ? (<>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                                Saving...
+                                            </>) : (<>
+                                                <Save className="mr-2 h-4 w-4"/>
+                                                Save Changes
+                                            </>)}
+                                          </span>
+                                    </Button>
 
-                                        <SelectContent>
-                                            <SelectItem value="A">A</SelectItem>
-                                            <SelectItem value="B">B</SelectItem>
-                                            <SelectItem value="C">C</SelectItem>
-                                            <SelectItem value="D">D</SelectItem>
-                                            <SelectItem value="E">E</SelectItem>
-                                            <SelectItem value="F">F</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                </div>)}
+                            </form>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="flatNumber">Flat Number</Label>
-                                    <Input
-                                        id="flatNumber"
-                                        name="flatNumber"
-                                        value={formData.flatNumber}
-                                        onChange={handleInputChange}
-                                        pattern="^(([1-9]|1[0-4])0[1-4])$"
-                                        title="Flat number must be in format: 101-104, 201-204, ..., 1401-1404"
-                                        maxLength="4"
-                                        placeholder="e.g., 101, 502, 1204"
-                                    />
-                                    {errors.flatNumber && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.flatNumber}</p>
-                                    )}
-                                    <p className="text-gray-500 text-xs mt-1">
-                                        Format: Floor (1-14) + Flat (01-04). Example: 101, 502, 1404
-                                    </p>
-                                </div>
+                <TabsContent value="security" className="mt-6">
+                    <Card className="border border-gray-200 shadow-sm">
+                        <CardHeader className="bg-gray-50 border-b border-gray-200">
+                            <CardTitle className="text-xl text-gray-900 flex items-center space-x-2">
+                                <Shield className="w-5 h-5 text-blue-600"/>
+                                <span>Security Settings</span>
+                            </CardTitle>
+                            <CardDescription className="text-gray-600 mt-1">
+                                Change your password to keep your account secure
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                                {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
+                                    <div key={field} className="space-y-2">
+                                        <Label
+                                            htmlFor={field}
+                                            className="text-sm font-medium text-gray-700"
+                                        >
+                                            {field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} *
+                                        </Label>
+                                        <div className="relative">
+                                            <Input
+                                                id={field}
+                                                name={field}
+                                                type={showPasswords[field.replace('Password', '').replace('current', 'current').replace('new', 'new').replace('confirm', 'confirm')] ? 'text' : 'password'}
+                                                value={passwordData[field]}
+                                                onChange={handlePasswordChange}
+                                                required
+                                                minLength={field !== 'currentPassword' ? 6 : undefined}
+                                                className="h-10 border-gray-300 focus:border-blue-500 bg-white pr-10"
+                                                placeholder="Enter password"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+                                                onClick={() => togglePasswordVisibility(field.replace('Password', '').replace('current', 'current').replace('new', 'new').replace('confirm', 'confirm'))}
+                                            >
+                                                {showPasswords[field.replace('Password', '').replace('current', 'current').replace('new', 'new').replace('confirm', 'confirm')] ? (
+                                                    <EyeOff className="h-4 w-4 text-gray-500"/>) : (
+                                                    <Eye className="h-4 w-4 text-gray-500"/>)}
+                                            </Button>
+                                        </div>
+                                        {field === 'newPassword' && (<p className="text-gray-500 text-xs">
+                                            Password must be at least 6 characters long
+                                        </p>)}
+                                    </div>))}
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="residentType">Resident Type</Label>
-                                    <Select
-                                        value={formData.residentType}
-                                        onValueChange={(value) => {
-                                            handleSelectChange('residentType', value)
-                                        }}
-                                        required
+                                <div className="flex justify-end pt-4 border-t border-gray-200">
+                                    <Button
+                                        type="submit"
+                                        disabled={changingPassword}
+                                        className="px-6 py-2.5 rounded-2xl font-medium transition-all duration-200 shadow-md hover:shadow-lg bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select resident type">
-                                                {formData.residentType}
-                                            </SelectValue>
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                            <SelectItem value="Owner">Owner</SelectItem>
-                                            <SelectItem value="Tenant">Tenant</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                      <span className="flex justify-center items-center">
+                                        {changingPassword ? (<>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                            Changing Password...
+                                        </>) : (<>
+                                            <Shield className="mr-2 h-4 w-4"/>
+                                            Change Password
+                                        </>)}
+                                      </span>
+                                    </Button>
                                 </div>
-                            </div>
-
-                            <div className="flex justify-end">
-                                <Button type="submit" disabled={saving}>
-                                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                    Save Changes
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-
-            <TabsContent value="security" className="mt-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Change Password</CardTitle>
-                        <CardDescription>Update your password</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="currentPassword">Current Password</Label>
-                                <Input
-                                    id="currentPassword"
-                                    name="currentPassword"
-                                    type="password"
-                                    value={passwordData.currentPassword}
-                                    onChange={handlePasswordChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="newPassword">New Password</Label>
-                                <Input
-                                    id="newPassword"
-                                    name="newPassword"
-                                    type="password"
-                                    value={passwordData.newPassword}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    minLength={6}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    value={passwordData.confirmPassword}
-                                    onChange={handlePasswordChange}
-                                    required
-                                    minLength={6}
-                                />
-                            </div>
-
-                            <div className="flex justify-end">
-                                <Button type="submit" disabled={changingPassword}>
-                                    {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                    Change Password
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+        </div>
     </div>);
 };
 
