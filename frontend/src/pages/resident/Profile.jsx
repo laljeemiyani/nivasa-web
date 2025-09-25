@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useToast} from '../../hooks/useToast';
+import {useAuth} from '../../context/AuthContext';
 import {residentAPI} from '../../services/api';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card.jsx';
 import {Button} from '../../components/ui/Button.jsx';
@@ -13,6 +14,7 @@ import {FiUser} from 'react-icons/fi';
 
 const ResidentProfile = () => {
     const {toast} = useToast();
+    const {updateProfilePhoto} = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
@@ -40,13 +42,12 @@ const ResidentProfile = () => {
             const formData = new FormData();
             formData.append('profilePhoto', file);
 
-            const response = await residentAPI.updateProfilePhoto(formData);
+            const result = await updateProfilePhoto(formData);
 
-            if (response.data.success) {
+            if (result.success) {
                 setProfilePhoto({
                     preview: URL.createObjectURL(file), name: file.name
                 });
-                toast.success('Profile photo updated successfully');
             }
         } catch (error) {
             console.error('Error uploading profile photo:', error);
@@ -116,7 +117,7 @@ const ResidentProfile = () => {
                 }
                 break;
             case 'flatNumber':
-                if (value && !/^(([1-9]|1[0-4])0[1-4])$/.test(value)) {
+                if (value && !/^([1-9]|1[0-4])(0[1-4])$/.test(value)) {
                     errorMessage = 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)';
                 }
                 break;

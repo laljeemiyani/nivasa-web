@@ -1,10 +1,8 @@
 import {useEffect, useState} from 'react';
 import {adminAPI} from '../../services/api';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card.jsx';
 import {Button} from '../../components/ui/Button.jsx';
 import {Badge} from '../../components/ui/Badge.jsx';
 import {Modal, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, ModalTitle} from '../../components/ui/Modal.jsx';
-import {Input} from '../../components/ui/Input.jsx';
 import {useToast} from '../../hooks/useToast.jsx';
 import {
     AlertDialog,
@@ -52,9 +50,7 @@ const AdminVehicles = () => {
         } catch (error) {
             console.error('Error fetching vehicles:', error);
             toast({
-                title: 'Error',
-                description: 'Failed to load vehicles',
-                variant: 'destructive'
+                title: 'Error', description: 'Failed to load vehicles', variant: 'destructive'
             });
         } finally {
             setLoading(false);
@@ -67,9 +63,7 @@ const AdminVehicles = () => {
             await adminAPI.updateVehicleStatus(selectedVehicle._id, {status});
 
             // Update the vehicle in the local state
-            setVehicles(vehicles.map(vehicle =>
-                vehicle._id === selectedVehicle._id ? {...vehicle, status} : vehicle
-            ));
+            setVehicles(vehicles.map(vehicle => vehicle._id === selectedVehicle._id ? {...vehicle, status} : vehicle));
 
             toast({
                 title: 'Success',
@@ -83,9 +77,7 @@ const AdminVehicles = () => {
         } catch (error) {
             console.error('Error updating vehicle status:', error);
             toast({
-                title: 'Error',
-                description: 'Failed to update vehicle status',
-                variant: 'destructive'
+                title: 'Error', description: 'Failed to update vehicle status', variant: 'destructive'
             });
         } finally {
             setProcessingStatus(false);
@@ -141,242 +133,326 @@ const AdminVehicles = () => {
         }
     };
 
-    return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Vehicle Management</h1>
-                <p className="text-gray-600">View and manage all registered vehicles</p>
+    return (<div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="mb-8 text-center">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Vehicle Records</h1>
+                <p className="text-gray-600 text-lg">View and manage all registered vehicles</p>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Vehicles</CardTitle>
-                    <CardDescription>View all registered vehicles in the society</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap gap-4 mb-4">
-                        <div>
-                            <label htmlFor="vehicleTypeFilter" className="block text-sm font-medium text-gray-700 mb-1">
-                                Filter by Vehicle Type
-                            </label>
-                            <select
-                                id="vehicleTypeFilter"
-                                className="border border-gray-300 rounded px-3 py-2"
-                                value={vehicleTypeFilter}
-                                onChange={(e) => setVehicleTypeFilter(e.target.value)}
-                            >
-                                <option value="">All Types</option>
-                                <option value="Two Wheeler">Two Wheeler</option>
-                                <option value="Four Wheeler">Four Wheeler</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">
-                                Filter by Status
-                            </label>
-                            <select
-                                id="statusFilter"
-                                className="border border-gray-300 rounded px-3 py-2"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
-                        </div>
-                        <div className="flex-grow">
-                            <label htmlFor="searchQuery" className="block text-sm font-medium text-gray-700 mb-1">
-                                Search Vehicles
-                            </label>
-                            <form onSubmit={handleSearch} className="flex gap-2">
-                                <Input
-                                    id="searchQuery"
-                                    type="text"
-                                    placeholder="Search by vehicle name or number"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="flex-grow"
-                                />
-                                <Button type="submit" variant="primary">
-                                    Search
-                                </Button>
-                            </form>
-                        </div>
+            {/* Filters and Search Section */}
+            <div className="bg-white rounded-lg shadow-sm border mb-6 p-6">
+                <form onSubmit={handleSearch} className="flex flex-wrap gap-4 items-center">
+                    {/* Search Input */}
+                    <div className="flex-1 min-w-[300px]">
+                        <input
+                            type="text"
+                            placeholder="Search vehicle name..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-4 pr-4 h-11 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none text-center"
+                        />
                     </div>
 
-                    {loading ? (
-                        <p>Loading vehicles...</p>
-                    ) : vehicles.length === 0 ? (
-                        <p>No vehicles found.</p>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full table-auto border-collapse border border-gray-200">
-                                <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Vehicle Number</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Vehicle Name</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Owner</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Flat</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-                                    <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {vehicles.map((vehicle) => (
-                                    <tr key={vehicle._id} className="hover:bg-gray-50">
-                                        <td className="border border-gray-300 px-4 py-2">{vehicle.vehicleNumber}</td>
-                                        <td className="border border-gray-300 px-4 py-2">{vehicle.vehicleName}</td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            <Badge variant={getVehicleTypeBadgeVariant(vehicle.vehicleType)}>
-                                                {vehicle.vehicleType}
-                                            </Badge>
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {vehicle.userId?.fullName || 'Unknown'}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            {vehicle.userId ? `${vehicle.userId.wing}-${vehicle.userId.flatNumber}` : 'N/A'}
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            <Badge variant={getStatusBadgeVariant(vehicle.status || 'pending')}>
-                                                {vehicle.status || 'pending'}
-                                            </Badge>
-                                        </td>
-                                        <td className="border border-gray-300 px-4 py-2">
-                                            <div className="flex space-x-2">
-                                                <Button onClick={() => openVehicleModal(vehicle)} variant="default"
-                                                        size="sm">
-                                                    View Details
-                                                </Button>
-                                                {vehicle.status === 'pending' && (
-                                                    <>
-                                                        <Button
-                                                            onClick={() => openStatusDialog(vehicle, 'approve')}
-                                                            variant="success"
-                                                            size="sm"
-                                                        >
-                                                            Approve
-                                                        </Button>
-                                                        <Button
-                                                            onClick={() => openStatusDialog(vehicle, 'reject')}
-                                                            variant="destructive"
-                                                            size="sm"
-                                                        >
-                                                            Reject
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                    {/* Search Button */}
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        className="flex-shrink-0 h-11 px-8 w-[120px]"
+                    >
+                        Search
+                    </Button>
+
+                    {/* Vehicle Type Filter */}
+                    <div className="min-w-[150px]">
+                        <select
+                            className="w-full h-11 border border-gray-300 rounded-md px-3 py-2 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            value={vehicleTypeFilter}
+                            onChange={(e) => setVehicleTypeFilter(e.target.value)}
+                        >
+                            <option value="">Vehicle Type</option>
+                            <option value="Two Wheeler">Two Wheeler</option>
+                            <option value="Four Wheeler">Four Wheeler</option>
+                        </select>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="min-w-[120px]">
+                        <select
+                            className="w-full h-11 border border-gray-300 rounded-md px-3 py-2 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+
+            {/* Table Section */}
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                {loading ? (<div className="p-8 text-center">
+                    <div className="animate-pulse flex space-x-4">
+                        <div className="rounded-full bg-slate-200 h-10 w-10"></div>
+                        <div className="flex-1 space-y-2 py-1">
+                            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                            <div className="h-4 bg-slate-200 rounded w-1/2"></div>
                         </div>
-                    )}
+                    </div>
+                </div>) : vehicles.length === 0 ? (<div className="p-8 text-center">
+                    <div className="text-gray-400 mb-2">
+                        <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <p className="text-gray-600">No vehicles found</p>
+                </div>) : (<>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Owner
+                                    Name
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Vehicle
+                                    Type
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Make</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Model</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">License
+                                    Plate
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                            {vehicles.map((vehicle, index) => (<tr key={vehicle._id}
+                                                                   className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {vehicle.userId?.fullName || 'Unknown'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {vehicle.vehicleType}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {vehicle.vehicleName}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {vehicle.vehicleModel || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 bg-gray-50 rounded px-2 py-1">
+                                    {vehicle.vehicleNumber}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <Badge
+                                        variant={getStatusBadgeVariant(vehicle.status || 'pending')}
+                                        className="px-2 py-1 text-xs font-medium rounded-full"
+                                    >
+                                        {vehicle.status === 'approved' ? 'Active' : vehicle.status === 'rejected' ? 'Inactive' : 'Pending'}
+                                    </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => openVehicleModal(vehicle)}
+                                            className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
+                                            title="Edit"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor"
+                                                 viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                            </svg>
+                                        </button>
+                                        {vehicle.status === 'pending' && (<>
+                                            <button
+                                                onClick={() => openStatusDialog(vehicle, 'approve')}
+                                                className="p-1.5 text-gray-400 hover:text-green-600 transition-colors"
+                                                title="Approve"
+                                            >
+                                                <svg className="w-4 h-4" fill="none"
+                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                          strokeWidth={2} d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => openStatusDialog(vehicle, 'reject')}
+                                                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                                                title="Reject"
+                                            >
+                                                <svg className="w-4 h-4" fill="none"
+                                                     stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round"
+                                                          strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </>)}
+                                    </div>
+                                </td>
+                            </tr>))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {/* Pagination */}
-                    <div className="mt-4 flex justify-center space-x-2">
-                        <Button
-                            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                            disabled={page === 1}
-                            size="sm"
-                        >
-                            Previous
-                        </Button>
-                        <span className="px-3 py-2 border border-gray-300 rounded">{page} / {totalPages}</span>
-                        <Button
-                            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                            disabled={page === totalPages}
-                            size="sm"
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                    {totalPages > 1 && (<div className="bg-white px-6 py-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Showing page {page} of {totalPages}
+                            </div>
+                            <div className="flex space-x-1">
+                                <button
+                                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                                    disabled={page === 1}
+                                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Previous
+                                </button>
 
-            {/* Vehicle Details Modal */}
-            <Modal isOpen={modalOpen} onClose={closeModal} size="md">
-                <ModalHeader>
-                    <ModalTitle>Vehicle Details</ModalTitle>
-                    <ModalCloseButton onClick={closeModal}/>
-                </ModalHeader>
-                <ModalBody>
-                    {selectedVehicle && (
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <p><strong>Vehicle Number:</strong> {selectedVehicle.vehicleNumber}</p>
-                                <p><strong>Vehicle Name:</strong> {selectedVehicle.vehicleName}</p>
-                                <p><strong>Vehicle Type:</strong> {selectedVehicle.vehicleType}</p>
-                                <p><strong>Vehicle Model:</strong> {selectedVehicle.vehicleModel || 'Not specified'}</p>
-                                <p><strong>Vehicle Color:</strong> {selectedVehicle.vehicleColor || 'Not specified'}</p>
-                                <p><strong>Registration Date:</strong> {formatDate(selectedVehicle.registrationDate)}
-                                </p>
-                                <p><strong>Owner Name:</strong> {selectedVehicle.userId?.fullName || 'Unknown'}</p>
-                                <p><strong>Owner Email:</strong> {selectedVehicle.userId?.email || 'Unknown'}</p>
-                                <p><strong>Flat
-                                    Number:</strong> {selectedVehicle.userId ? `${selectedVehicle.userId.wing}-${selectedVehicle.userId.flatNumber}` : 'N/A'}
-                                </p>
-                                <p><strong>Registered On:</strong> {formatDate(selectedVehicle.createdAt)}</p>
-                                <p>
-                                    <strong>Status:</strong>{' '}
-                                    <Badge variant={getStatusBadgeVariant(selectedVehicle.status || 'pending')}>
-                                        {selectedVehicle.status || 'pending'}
-                                    </Badge>
-                                </p>
+                                {/* Page numbers */}
+                                {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                                    let pageNum;
+                                    if (totalPages <= 5) {
+                                        pageNum = i + 1;
+                                    } else if (page <= 3) {
+                                        pageNum = i + 1;
+                                    } else if (page >= totalPages - 2) {
+                                        pageNum = totalPages - 4 + i;
+                                    } else {
+                                        pageNum = page - 2 + i;
+                                    }
+
+                                    return (<button
+                                        key={pageNum}
+                                        onClick={() => setPage(pageNum)}
+                                        className={`px-3 py-2 text-sm font-medium rounded-md ${page === pageNum ? 'bg-blue-600 text-white' : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'}`}
+                                    >
+                                        {pageNum}
+                                    </button>);
+                                })}
+
+                                <button
+                                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                                    disabled={page === totalPages}
+                                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Next
+                                </button>
                             </div>
                         </div>
-                    )}
-                </ModalBody>
-                <ModalFooter>
-                    <Button onClick={closeModal} variant="secondary">
-                        Close
-                    </Button>
-                </ModalFooter>
-            </Modal>
-
-            {/* Status Update Dialog */}
-            <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            {statusAction === 'approve' ? 'Approve Vehicle' : 'Reject Vehicle'}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {statusAction === 'approve'
-                                ? 'Are you sure you want to approve this vehicle? This will allow the resident to use this vehicle in the society.'
-                                : 'Are you sure you want to reject this vehicle? This will prevent the resident from using this vehicle in the society.'}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={closeStatusDialog} disabled={processingStatus}>
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={() => handleUpdateStatus(statusAction === 'approve' ? 'approved' : 'rejected')}
-                            disabled={processingStatus}
-                            className={statusAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-                        >
-                            {processingStatus ? (
-                                <>
-                                    <span className="animate-spin mr-2">⏳</span>
-                                    Processing...
-                                </>
-                            ) : statusAction === 'approve' ? (
-                                'Approve'
-                            ) : (
-                                'Reject'
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                    </div>)}
+                </>)}
+            </div>
         </div>
-    );
+
+        {/* Vehicle Details Modal */}
+        <Modal isOpen={modalOpen} onClose={closeModal} size="md">
+            <ModalHeader>
+                <ModalTitle>Vehicle Details</ModalTitle>
+                <ModalCloseButton onClick={closeModal}/>
+            </ModalHeader>
+            <ModalBody>
+                {selectedVehicle && (<div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle
+                                Number</label>
+                            <p className="text-sm text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">{selectedVehicle.vehicleNumber}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Name</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.vehicleName}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.vehicleType}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle
+                                Model</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.vehicleModel || 'Not specified'}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle
+                                Color</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.vehicleColor || 'Not specified'}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Registration
+                                Date</label>
+                            <p className="text-sm text-gray-900">{formatDate(selectedVehicle.registrationDate)}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Owner Name</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.userId?.fullName || 'Unknown'}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Owner Email</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.userId?.email || 'Unknown'}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Flat Number</label>
+                            <p className="text-sm text-gray-900">{selectedVehicle.userId ? `${selectedVehicle.userId.wing}-${selectedVehicle.userId.flatNumber}` : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Registered
+                                On</label>
+                            <p className="text-sm text-gray-900">{formatDate(selectedVehicle.createdAt)}</p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <Badge variant={getStatusBadgeVariant(selectedVehicle.status || 'pending')}>
+                                {selectedVehicle.status || 'pending'}
+                            </Badge>
+                        </div>
+                    </div>
+                </div>)}
+            </ModalBody>
+            <ModalFooter>
+                <Button onClick={closeModal} variant="secondary">
+                    Close
+                </Button>
+            </ModalFooter>
+        </Modal>
+
+        {/* Status Update Dialog */}
+        <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>
+                        {statusAction === 'approve' ? 'Approve Vehicle' : 'Reject Vehicle'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {statusAction === 'approve' ? 'Are you sure you want to approve this vehicle? This will allow the resident to use this vehicle in the society.' : 'Are you sure you want to reject this vehicle? This will prevent the resident from using this vehicle in the society.'}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={closeStatusDialog} disabled={processingStatus}>
+                        Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={() => handleUpdateStatus(statusAction === 'approve' ? 'approved' : 'rejected')}
+                        disabled={processingStatus}
+                        className={statusAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+                    >
+                        {processingStatus ? (<>
+                            <span className="animate-spin mr-2">⏳</span>
+                            Processing...
+                        </>) : statusAction === 'approve' ? ('Approve') : ('Reject')}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    </div>);
 };
 
 export default AdminVehicles;

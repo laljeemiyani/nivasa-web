@@ -1,4 +1,5 @@
 const {body, param, query, validationResult} = require('express-validator');
+const {validateCommonEmail} = require('../utils/validators');
 
 // Handle validation errors
 const handleValidationErrors = (req, res, next) => {
@@ -13,16 +14,42 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
+// Custom email validation using our centralized function
+const customEmailValidation = (fieldName, isRequired = true) => {
+    if (isRequired) {
+        return [
+            body(fieldName)
+                .custom((value) => {
+                    if (!value) {
+                        throw new Error(`${fieldName} is required`);
+                    }
+                    if (!validateCommonEmail(value)) {
+                        throw new Error('Please provide a valid email');
+                    }
+                    return true;
+                })
+        ];
+    } else {
+        return [
+            body(fieldName)
+                .optional({checkFalsy: true})
+                .custom((value) => {
+                    if (!validateCommonEmail(value)) {
+                        throw new Error('Please provide a valid email');
+                    }
+                    return true;
+                })
+        ];
+    }
+};
+
 // User registration validation
 const validateUserRegistration = [
     body('fullName')
         .trim()
         .isLength({min: 2, max: 100})
         .withMessage('Full name must be between 2 and 100 characters'),
-    body('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
+    ...customEmailValidation('email', true), // Email is required
     body('password')
         .isLength({min: 6})
         .withMessage('Password must be at least 6 characters long'),
@@ -40,7 +67,7 @@ const validateUserRegistration = [
     body('flatNumber')
         .optional()
         .trim()
-        .matches(/^(([1-9]|1[0-4])0[1-4]|([1-9]|1[0-4])(0[1-4]))$/)
+        .matches(/^([1-9]|1[0-4])(0[1-4])$/)
         .withMessage('Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)'),
     body('age')
         .optional()
@@ -55,10 +82,7 @@ const validateUserRegistration = [
 
 // User login validation
 const validateUserLogin = [
-    body('email')
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
+    ...customEmailValidation('email', true), // Email is required
     body('password')
         .notEmpty()
         .withMessage('Password is required'),
@@ -79,15 +103,11 @@ const validateFamilyMember = [
         .optional()
         .matches(/^[0-9]{10}$/)
         .withMessage('Phone number must be exactly 10 digits'),
-    body('email')
-        .optional()
-        .isEmail()
-        .normalizeEmail()
-        .withMessage('Please provide a valid email'),
+    ...customEmailValidation('email', false), // Email is optional for family members
     body('age')
         .optional()
-        .isInt({min: 1, max: 120})
-        .withMessage('Age must be between 1 and 120'),
+        .isInt({min: 0, max: 120})
+        .withMessage('Age must be between 0 and 120'),
     body('gender')
         .optional()
         .isIn(['Male', 'Female', 'Other'])

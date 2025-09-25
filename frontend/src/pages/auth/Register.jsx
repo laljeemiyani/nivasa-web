@@ -4,6 +4,7 @@ import {useAuth} from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card';
+import {validateCommonEmail} from '../../utils/validators';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const Register = () => {
         }
         break;
       case 'email':
-        if (value && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
+          if (value && !validateCommonEmail(value)) {
           errorMessage = 'Please enter a valid email address';
         }
         break;
@@ -53,7 +54,7 @@ const Register = () => {
         }
         break;
       case 'flatNumber':
-        if (value && !/^(([1-9]|1[0-4])0[1-4])$/.test(value)) {
+          if (value && !/^([1-9]|1[0-4])(0[1-4])$/.test(value)) {
           errorMessage = 'Flat number must be in format: 101-104, 201-204, ..., 1401-1404 (floors 1-14, flats 01-04)';
         }
         break;

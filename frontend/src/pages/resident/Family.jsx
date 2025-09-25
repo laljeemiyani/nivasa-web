@@ -6,6 +6,7 @@ import {Input} from '../../components/ui/Input.jsx';
 import {Label} from '../../components/ui/Label.jsx';
 import {Badge} from '../../components/ui/Badge.jsx';
 import {Edit, Loader2, Trash2, UserPlus, Users} from 'lucide-react';
+import {validateCommonEmail} from '../../utils/validators';
 
 const ResidentFamily = () => {
     const {toast} = useToast();
@@ -92,12 +93,12 @@ const ResidentFamily = () => {
                 }
                 break;
             case 'age':
-                if (value && (parseInt(value) < 1 || parseInt(value) > 120)) {
-                    errorMessage = 'Age must be between 1 and 120';
+                if (value && (parseInt(value) < 0 || parseInt(value) > 120)) {
+                    errorMessage = 'Age must be between 0 and 120';
                 }
                 break;
             case 'email':
-                if (value && value.length > 0 && !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
+                if (value && value.length > 0 && !validateCommonEmail(value)) {
                     errorMessage = 'Please enter a valid email address';
                 }
                 break;

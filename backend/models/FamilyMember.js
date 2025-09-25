@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {validateCommonEmail} = require('../utils/validators');
 
 const familyMemberSchema = new mongoose.Schema({
   userId: {
@@ -27,11 +28,16 @@ const familyMemberSchema = new mongoose.Schema({
     type: String,
     lowercase: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+      validate: {
+          validator: function (v) {
+              return v === undefined || v === '' || validateCommonEmail(v);
+          },
+          message: 'Please enter a valid email address'
+      }
   },
   age: {
     type: Number,
-    min: [1, 'Age must be positive'],
+      min: [0, 'Age must be 0 or greater'],
     max: [120, 'Age cannot exceed 120']
   },
   gender: {
