@@ -37,25 +37,25 @@ const ResidentVehicles = () => {
     const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [modalMode, setModalMode] = useState('create'); // 'create', 'edit'
     // const [currentPage, setCurrentPage] = useState(1);
-    const [currentPage] = useState(1);
+    // No pagination needed for resident vehicles
     // const [totalPages, setTotalPages] = useState(1);
     const [formData, setFormData] = useState({
         vehicleType: '',
-        manufacturer: '',
-        model: '',
-        color: '',
-        registrationNumber: '',
+        vehicleName: '',
+        vehicleModel: '',
+        vehicleColor: '',
+        vehicleNumber: '',
         parkingSlot: ''
     });
 
     useEffect(() => {
         fetchVehicles();
-    }, [currentPage]);
+    }, []);
 
     const fetchVehicles = async () => {
         try {
             setLoading(true);
-            const response = await residentAPI.getVehicles(currentPage);
+            const response = await residentAPI.getVehicles();
             setVehicles(response.data.data.vehicles);
             // setTotalPages(response.data.data.totalPages || 1);
         } catch (error) {
@@ -88,10 +88,10 @@ const ResidentVehicles = () => {
         setSelectedVehicle(vehicle);
         setFormData({
             vehicleType: vehicle.vehicleType || '',
-            manufacturer: vehicle.manufacturer || '',
-            model: vehicle.model || '',
-            color: vehicle.color || '',
-            registrationNumber: vehicle.registrationNumber || '',
+            vehicleName: vehicle.vehicleName || '',
+            vehicleModel: vehicle.vehicleModel || '',
+            vehicleColor: vehicle.vehicleColor || '',
+            vehicleNumber: vehicle.vehicleNumber || '',
             parkingSlot: vehicle.parkingSlot || ''
         });
         setIsModalOpen(true);
@@ -274,7 +274,7 @@ const ResidentVehicles = () => {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-medium text-lg">
-                                                    {vehicle.manufacturer} {vehicle.model}
+                                                    {vehicle.vehicleName} {vehicle.vehicleModel}
                                                 </h3>
                                                 <Badge variant={getVehicleTypeColor(vehicle.vehicleType)}>
                                                     {vehicle.vehicleType}
@@ -365,44 +365,44 @@ const ResidentVehicles = () => {
                                         name="vehicleType"
                                         value={formData.vehicleType}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. Car, Bike, Scooter"
+                                        placeholder="e.g. Car, Bike, EV, Truck, Bus"
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="color">Color</Label>
+                                    <Label htmlFor="vehicleColor">Color</Label>
                                     <Input
-                                        id="color"
-                                        name="color"
-                                        value={formData.color}
+                                        id="vehicleColor"
+                                        name="vehicleColor"
+                                        value={formData.vehicleColor}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. Red, Blue, Black"
+                                        placeholder="e.g. Red, Blue, Black (max 30 chars)"
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="manufacturer">Manufacturer *</Label>
+                                    <Label htmlFor="vehicleName">Vehicle Name *</Label>
                                     <Input
-                                        id="manufacturer"
-                                        name="manufacturer"
-                                        value={formData.manufacturer}
+                                        id="vehicleName"
+                                        name="vehicleName"
+                                        value={formData.vehicleName}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. Toyota, Honda, Ford"
+                                        placeholder="e.g. Toyota, Honda, Ford (2-50 chars)"
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="model">Model *</Label>
+                                    <Label htmlFor="vehicleModel">Model *</Label>
                                     <Input
-                                        id="model"
-                                        name="model"
-                                        value={formData.model}
+                                        id="vehicleModel"
+                                        name="vehicleModel"
+                                        value={formData.vehicleModel}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. Corolla, Civic, Mustang"
+                                        placeholder="e.g. Corolla, Civic, Mustang (1-50 chars)"
                                         required
                                     />
                                 </div>
@@ -410,13 +410,13 @@ const ResidentVehicles = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="registrationNumber">Registration Number *</Label>
+                                    <Label htmlFor="vehicleNumber">Registration Number *</Label>
                                     <Input
-                                        id="registrationNumber"
-                                        name="registrationNumber"
-                                        value={formData.registrationNumber}
+                                        id="vehicleNumber"
+                                        name="vehicleNumber"
+                                        value={formData.vehicleNumber}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. ABC-123"
+                                        placeholder="e.g. MH04AB1234 (format: XX00XX0000)"
                                         required
                                     />
                                 </div>
@@ -428,7 +428,7 @@ const ResidentVehicles = () => {
                                         name="parkingSlot"
                                         value={formData.parkingSlot}
                                         onChange={handleInputChange}
-                                        placeholder="e.g. A-12, B-05"
+                                        placeholder="e.g. A-503-P1 (format: X-NUM-P[1-2])"
                                     />
                                 </div>
                             </div>

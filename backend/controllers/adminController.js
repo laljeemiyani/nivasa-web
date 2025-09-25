@@ -8,7 +8,6 @@ const { createNotificationInternal } = require('./notificationController');
 // Get dashboard statistics
 const getDashboardStats = async (req, res) => {
   try {
-    console.log('Fetching dashboard stats...');
     const [
       totalResidents,
       pendingResidents,
@@ -25,31 +24,18 @@ const getDashboardStats = async (req, res) => {
       Vehicle.countDocuments()
     ]);
 
-    console.log('Dashboard stats fetched:', {
-      totalResidents,
-      pendingResidents,
-      totalComplaints,
-      pendingComplaints,
-      totalNotices,
-      totalVehicles
-    });
-
     // Get recent activities
-    console.log('Fetching recent complaints...');
     const recentComplaints = await Complaint.find()
       .populate('userId', 'fullName email')
       .sort({ createdAt: -1 })
       .limit(5);
-    console.log('Recent complaints fetched:', recentComplaints.length);
 
-    console.log('Fetching recent residents...');
     const recentResidents = await User.find({ role: 'resident' })
       .sort({ createdAt: -1 })
       .limit(5)
       .select('fullName email status createdAt');
     console.log('Recent residents fetched:', recentResidents.length);
 
-    console.log('Sending dashboard response.');
     res.json({
       success: true,
       data: {
@@ -356,7 +342,7 @@ const getVehicles = async (req, res) => {
 
     const total = await Vehicle.countDocuments(filter);
 
-    console.log('Sending vehicles response:', {
+    res.json({
       success: true,
       data: {
         vehicles,

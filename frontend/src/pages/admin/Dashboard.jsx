@@ -1,15 +1,8 @@
-import { useState, useEffect } from 'react';
-import { adminAPI } from '../../services/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
-import { 
-  UsersIcon, 
-  ExclamationTriangleIcon, 
-  MegaphoneIcon, 
-  TruckIcon,
-  ClockIcon,
-  CheckCircleIcon
-} from '../../components/ui/Icons';
+import {useEffect, useState} from 'react';
+import {adminAPI} from '../../services/api';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card';
+import {Badge} from '../../components/ui/Badge';
+import {ClockIcon, ExclamationTriangleIcon, MegaphoneIcon, TruckIcon, UsersIcon} from '../../components/ui/Icons';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -72,7 +65,7 @@ const AdminDashboard = () => {
     },
     {
       title: 'Active Notices',
-      value: stats?.totalNotices || 0,
+      value: stats?.activeNotices || 0,
       icon: MegaphoneIcon,
       color: 'text-green-600',
       bgColor: 'bg-green-100',

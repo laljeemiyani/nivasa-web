@@ -26,6 +26,7 @@ const AdminLayout = () => {
         {name: 'Complaints', href: '/admin/complaints', icon: ExclamationTriangleIcon},
         {name: 'Notices', href: '/admin/notices', icon: MegaphoneIcon},
         {name: 'Vehicles', href: '/admin/vehicles', icon: TruckIcon},
+        {name: 'Notifications', href: '/admin/notifications', icon: MegaphoneIcon},
     ];
 
     const handleLogout = () => {

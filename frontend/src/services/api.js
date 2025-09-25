@@ -26,7 +26,7 @@ export const authAPI = {
 };
 
 export const adminAPI = {
-    getDashboardStats: () => apiClient.get('/admin/dashboard-stats'),
+    getDashboardStats: () => apiClient.get('/admin/dashboard/stats'),
     getResidents: (params) => apiClient.get('/admin/residents', {params}),
     updateResidentStatus: (userId, data) => apiClient.put(`/admin/residents/${userId}/status`, data),
     getComplaints: (params) => apiClient.get('/admin/complaints', {params}),
@@ -58,7 +58,7 @@ export const residentAPI = {
     addFamilyMember: (data) => apiClient.post('/family', data),
     updateFamilyMember: (memberId, data) => apiClient.put(`/family/${memberId}`, data),
     deleteFamilyMember: (memberId) => apiClient.delete(`/family/${memberId}`),
-    getVehicles: () => apiClient.get('/vehicles'),
+    getVehicles: () => apiClient.get('/vehicles/my-vehicles'),
     addVehicle: (data) => apiClient.post('/vehicles', data),
     updateVehicle: (vehicleId, data) => apiClient.put(`/vehicles/${vehicleId}`, data),
     deleteVehicle: (vehicleId) => apiClient.delete(`/vehicles/${vehicleId}`)

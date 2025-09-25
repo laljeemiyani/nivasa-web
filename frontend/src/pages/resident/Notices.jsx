@@ -33,8 +33,8 @@ const ResidentNotices = () => {
                 page: currentPage,
                 limit: 10,
                 search: searchQuery || undefined,
-                category: categoryFilter || undefined,
-                priority: priorityFilter || undefined,
+                category: categoryFilter ? categoryFilter.toLowerCase() : undefined,
+                priority: priorityFilter ? priorityFilter.toLowerCase() : undefined,
                 isActive: true // Only show active notices
             };
 
@@ -89,12 +89,13 @@ const ResidentNotices = () => {
     };
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'High':
+        const normalizedPriority = priority ? priority.toLowerCase() : '';
+        switch (normalizedPriority) {
+            case 'high':
                 return 'destructive';
-            case 'Medium':
+            case 'medium':
                 return 'warning';
-            case 'Low':
+            case 'low':
                 return 'secondary';
             default:
                 return 'secondary';
@@ -102,16 +103,20 @@ const ResidentNotices = () => {
     };
 
     const getCategoryColor = (category) => {
-        switch (category) {
-            case 'Maintenance':
+        const normalizedCategory = category ? category.toLowerCase() : '';
+        switch (normalizedCategory) {
+            case 'maintenance':
                 return 'blue';
-            case 'Security':
+            case 'security':
                 return 'red';
-            case 'Community':
+            case 'community':
+            case 'event':
                 return 'green';
-            case 'Emergency':
+            case 'emergency':
+            case 'other':
                 return 'destructive';
-            case 'General':
+            case 'general':
+            case 'payment':
                 return 'secondary';
             default:
                 return 'secondary';

@@ -1,15 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { residentAPI } from '../../services/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
-import { 
-  MegaphoneIcon, 
-  ExclamationTriangleIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  UserCircleIcon
-} from '../../components/ui/Icons';
+import {useEffect, useState} from 'react';
+import {useAuth} from '../../context/AuthContext';
+import {residentAPI} from '../../services/api';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/Card';
+import {Badge} from '../../components/ui/Badge';
+import {CheckCircleIcon, ExclamationTriangleIcon, MegaphoneIcon, UserCircleIcon} from '../../components/ui/Icons';
 
 const ResidentDashboard = () => {
   const { user } = useAuth();
@@ -24,8 +18,8 @@ const ResidentDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const [noticesResponse, complaintsResponse] = await Promise.all([
-        residentAPI.getNotices({ limit: 5 }),
-        residentAPI.getComplaints({ limit: 5 })
+        residentAPI.getNotices({limit: 5, isActive: true}),
+        residentAPI.getComplaints({limit: 5})
       ]);
 
       setNotices(noticesResponse.data.data.notices);
@@ -46,12 +40,14 @@ const ResidentDashboard = () => {
   }
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const normalizedStatus = status ? status.toLowerCase() : '';
+    switch (normalizedStatus) {
       case 'pending':
         return 'warning';
       case 'resolved':
         return 'success';
       case 'in_progress':
+      case 'in progress':
         return 'info';
       default:
         return 'default';
@@ -161,7 +157,8 @@ const ResidentDashboard = () => {
                         {notice.description}
                       </p>
                       <div className="flex items-center mt-1">
-                        <Badge variant="info">{notice.priority}</Badge>
+                        <Badge
+                            variant="info">{notice.priority ? notice.priority.charAt(0).toUpperCase() + notice.priority.slice(1) : 'N/A'}</Badge>
                         <span className="text-xs text-gray-500 ml-2">
                           {new Date(notice.createdAt).toLocaleDateString()}
                         </span>

@@ -3,28 +3,44 @@ const Vehicle = require('../models/Vehicle');
 // Add vehicle
 const addVehicle = async (req, res) => {
     try {
-        const {
+        let {
             vehicleType,
-            manufacturer,
-            model,
-            color,
+            vehicleName,
+            vehicleModel,
+            vehicleColor,
             parkingSlot,
-            registrationNumber,
+            vehicleNumber,
             registrationDate
         } = req.body;
 
-        // Safety check for registrationNumber
-        if (!registrationNumber) {
+        // Normalize vehicle type to capitalized format
+        if (vehicleType) {
+            vehicleType = vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1).toLowerCase();
+        }
+
+        // Capitalize other fields for consistency
+        if (vehicleName) {
+            vehicleName = vehicleName.charAt(0).toUpperCase() + vehicleName.slice(1).toLowerCase();
+        }
+        if (vehicleModel) {
+            vehicleModel = vehicleModel.charAt(0).toUpperCase() + vehicleModel.slice(1).toLowerCase();
+        }
+        if (vehicleColor) {
+            vehicleColor = vehicleColor.charAt(0).toUpperCase() + vehicleColor.slice(1).toLowerCase();
+        }
+
+        // Safety check for vehicleNumber
+        if (!vehicleNumber) {
             return res.status(400).json({
                 success: false,
-                message: 'Vehicle registration number is required'
+                message: 'Vehicle number is required'
             });
         }
 
         // Check if vehicle number already exists for this user
         const existingVehicle = await Vehicle.findOne({
             userId: req.user._id,
-            vehicleNumber: registrationNumber.toUpperCase()
+            vehicleNumber: vehicleNumber.toUpperCase()
         });
 
         if (existingVehicle) {
@@ -37,10 +53,10 @@ const addVehicle = async (req, res) => {
         const vehicle = new Vehicle({
             userId: req.user._id,
             vehicleType,
-            vehicleName: manufacturer,
-            vehicleModel: model,
-            vehicleColor: color,
-            vehicleNumber: registrationNumber.toUpperCase(),
+            vehicleName,
+            vehicleModel,
+            vehicleColor,
+            vehicleNumber: vehicleNumber.toUpperCase(),
             parkingSlot,
             status: 'pending',
             registrationDate: registrationDate ? new Date(registrationDate) : null
@@ -118,14 +134,31 @@ const getVehicle = async (req, res) => {
 const updateVehicle = async (req, res) => {
     try {
         const {vehicleId} = req.params;
-        const {
+        let {
             vehicleType,
             vehicleName,
             vehicleNumber,
             vehicleModel,
             vehicleColor,
+            parkingSlot,
             registrationDate
         } = req.body;
+
+        // Normalize vehicle type to capitalized format
+        if (vehicleType) {
+            vehicleType = vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1).toLowerCase();
+        }
+
+        // Capitalize other fields for consistency
+        if (vehicleName) {
+            vehicleName = vehicleName.charAt(0).toUpperCase() + vehicleName.slice(1).toLowerCase();
+        }
+        if (vehicleModel) {
+            vehicleModel = vehicleModel.charAt(0).toUpperCase() + vehicleModel.slice(1).toLowerCase();
+        }
+        if (vehicleColor) {
+            vehicleColor = vehicleColor.charAt(0).toUpperCase() + vehicleColor.slice(1).toLowerCase();
+        }
 
         // Check if vehicle number already exists for another vehicle of this user
         if (vehicleNumber) {
@@ -149,6 +182,7 @@ const updateVehicle = async (req, res) => {
         if (vehicleNumber) updateData.vehicleNumber = vehicleNumber.toUpperCase();
         if (vehicleModel) updateData.vehicleModel = vehicleModel;
         if (vehicleColor) updateData.vehicleColor = vehicleColor;
+        if (parkingSlot) updateData.parkingSlot = parkingSlot;
         if (registrationDate) updateData.registrationDate = new Date(registrationDate);
 
         // Reset status to pending when vehicle details are updated
@@ -273,6 +307,7 @@ const getAllVehicles = async (req, res) => {
 
         const [vehicles, total] = await Promise.all([
             Vehicle.find()
+                .populate('userId', 'fullName email wing flatNumber profilePhoto')
                 .skip(skip)
                 .limit(limit)
                 .sort({createdAt: -1}),
